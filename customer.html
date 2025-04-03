@@ -5,13 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Restaurant | Order Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
 
     <!-- Navbar -->
     <header class="bg-red-600 text-white p-4 flex justify-between items-center fixed top-0 w-full z-50">
         <div class="flex items-center">
-            <img src="https://via.placeholder.com/50" alt="Hotel Logo" class="h-10 w-10 rounded-full mr-2">
+            <img src="https://placehold.co/50" alt="Hotel Logo" class="h-10 w-10 rounded-full mr-2">
             <h1 class="text-lg md:text-2xl font-bold">🍽️ My Restaurant</h1>
         </div>
         <button id="trackOrderBtn" class="bg-white text-red-600 px-3 py-1 rounded text-sm md:text-base">📦 Track Order</button>
@@ -50,30 +52,29 @@
             <p class="text-gray-600 mt-2">Your order from <span class="font-bold text-blue-600" id="order-table">N/A</span> is <span class="font-bold text-red-600" id="order-status-text">N/A</span></p>
         </div>
 
-        <!-- Google Review Button -->
-        <div class="text-center mt-6">
-            <a href="https://www.google.com/search?q=my+restaurant+reviews" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded-lg text-lg shadow">
-                ⭐ Leave a Google Review
-            </a>
-        </div>
-
     </main>
 
     <footer class="bg-gray-900 text-white mt-12 p-4 text-center">
-        <p class="mb-2">Follow Us:</p>
-        <div class="flex justify-center space-x-4">
-            <a href="https://facebook.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Facebook"></a>
-            <a href="https://instagram.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Instagram"></a>
-            <a href="https://twitter.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Twitter"></a>
-            <a href="https://wa.me/+919876543210" target="_blank"><img src="https://via.placeholder.com/30" alt="WhatsApp"></a>
-        </div>
-        <div class="mt-4">
-            <p>Powered by</p>
-            <img src="https://via.placeholder.com/100x50" alt="Srida Technologies Logo" class="mx-auto">
-        </div>
+        <p>Powered by</p>
+        <img src="https://placehold.co/100x50" alt="Srida Technologies Logo" class="mx-auto">
     </footer>
 
     <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
+  authDomain: "testmenu-4ed51.firebaseapp.com",
+  projectId: "testmenu-4ed51",
+  storageBucket: "testmenu-4ed51.firebasestorage.app",
+  messagingSenderId: "98263305480",
+  appId: "1:98263305480:web:024158941cb5f53225f0bd",
+  measurementId: "G-CX0JDH1RDP"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         document.addEventListener("DOMContentLoaded", function () {
             function showSection(sectionId) {
                 document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
@@ -81,14 +82,13 @@
             }
 
             const menu = [
-                { id: 1, name: "Pizza", price: 299, image: "https://via.placeholder.com/150" },
-                { id: 2, name: "Burger", price: 199, image: "https://via.placeholder.com/150" },
-                { id: 3, name: "Pasta", price: 249, image: "https://via.placeholder.com/150" },
-                { id: 4, name: "Salad", price: 149, image: "https://via.placeholder.com/150" }
+                { id: 1, name: "Pizza", price: 299, image: "https://placehold.co/150" },
+                { id: 2, name: "Burger", price: 199, image: "https://placehold.co/150" },
+                { id: 3, name: "Pasta", price: 249, image: "https://placehold.co/150" },
+                { id: 4, name: "Salad", price: 149, image: "https://placehold.co/150" }
             ];
 
             let cart = {};
-            let currentOrder = { table: null, status: "Pending" };
 
             function loadMenu() {
                 const menuContainer = document.getElementById("menu-items");
@@ -123,8 +123,26 @@
                 document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
             }
 
-            document.getElementById("trackOrderBtn").addEventListener("click", () => showSection('order-status'));
-            document.getElementById("placeOrderBtn").addEventListener("click", () => alert("Order placed!"));
+            document.getElementById("placeOrderBtn").addEventListener("click", function () {
+                const table = document.getElementById("table-select").value;
+                if (!table || Object.keys(cart).length === 0) {
+                    alert("Please select a table and add items to the order.");
+                    return;
+                }
+
+                db.collection("orders").add({
+                    table: table,
+                    orderItems: Object.values(cart),
+                    status: "Pending",
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                }).then(() => {
+                    alert("Order placed successfully!");
+                    cart = {};
+                    updateOrder();
+                }).catch(error => {
+                    console.error("Error placing order:", error);
+                });
+            });
 
             loadMenu();
         });
