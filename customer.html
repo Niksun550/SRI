@@ -3,14 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant Ordering App</title>
+    <title>My Restaurant | Order Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-900">
 
     <!-- Navbar -->
     <header class="bg-red-600 text-white p-4 flex justify-between items-center fixed top-0 w-full z-50">
-        <h1 class="text-xl md:text-2xl font-bold">🍽️ My Restaurant</h1>
+        <div class="flex items-center">
+            <img src="https://via.placeholder.com/50" alt="Hotel Logo" class="h-10 w-10 rounded-full mr-2">
+            <h1 class="text-lg md:text-2xl font-bold">🍽️ My Restaurant</h1>
+        </div>
         <button onclick="showSection('order-status')" class="bg-white text-red-600 px-3 py-1 rounded text-sm md:text-base">📦 Track Order</button>
     </header>
 
@@ -41,7 +44,7 @@
 
             <!-- Order Items -->
             <ul id="order-items" class="mt-4 p-4 rounded-lg shadow bg-gray-50"></ul>
-            <div class="mt-4 font-bold text-lg">Total: $<span id="total-price">0.00</span></div>
+            <div class="mt-4 font-bold text-lg">Total: ₹<span id="total-price">0.00</span></div>
             <button onclick="placeOrder()" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
         </div>
 
@@ -51,10 +54,31 @@
             <p class="text-gray-600 mt-2">Your order from <span class="font-bold text-blue-600" id="order-table">N/A</span> is <span class="font-bold text-red-600" id="order-status-text">N/A</span></p>
         </div>
 
+        <!-- Google Review Button -->
+        <div class="text-center mt-6">
+            <a href="https://www.google.com/search?q=my+restaurant+reviews" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded-lg text-lg shadow">
+                ⭐ Leave a Google Review
+            </a>
+        </div>
+
     </main>
 
+    <!-- Footer with Social Media Links -->
+    <footer class="bg-gray-900 text-white mt-12 p-4 text-center">
+        <p class="mb-2">Follow Us:</p>
+        <div class="flex justify-center space-x-4">
+            <a href="https://facebook.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Facebook"></a>
+            <a href="https://instagram.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Instagram"></a>
+            <a href="https://twitter.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Twitter"></a>
+            <a href="https://wa.me/+919876543210" target="_blank"><img src="https://via.placeholder.com/30" alt="WhatsApp"></a>
+        </div>
+        <div class="mt-4">
+            <p>Powered by</p>
+            <img src="https://via.placeholder.com/100x50" alt="Srida Technologies Logo" class="mx-auto">
+        </div>
+    </footer>
+
     <script>
-        // ✅ Show Sections
         function showSection(sectionId) {
             document.querySelectorAll('.section').forEach(section => {
                 section.classList.add('hidden');
@@ -62,17 +86,15 @@
             document.getElementById(sectionId).classList.remove('hidden');
         }
 
-        // ✅ Sample menu data
         const menu = [
-            { id: 1, name: "Pizza", price: 12.99, image: "https://via.placeholder.com/150" },
-            { id: 2, name: "Burger", price: 9.99, image: "https://via.placeholder.com/150" },
-            { id: 3, name: "Pasta", price: 8.99, image: "https://via.placeholder.com/150" },
-            { id: 4, name: "Salad", price: 5.99, image: "https://via.placeholder.com/150" }
+            { id: 1, name: "Pizza", price: 299, image: "https://via.placeholder.com/150" },
+            { id: 2, name: "Burger", price: 199, image: "https://via.placeholder.com/150" },
+            { id: 3, name: "Pasta", price: 249, image: "https://via.placeholder.com/150" },
+            { id: 4, name: "Salad", price: 149, image: "https://via.placeholder.com/150" }
         ];
 
-        // ✅ Cart with Quantity Handling
         let cart = {};
-        let currentOrder = { table: null, status: "Pending" }; // Stores current order details
+        let currentOrder = { table: null, status: "Pending" };
 
         function loadMenu() {
             let menuContainer = document.getElementById("menu-items");
@@ -82,7 +104,7 @@
                     <div class="bg-white p-4 rounded-lg shadow text-center">
                         <img src="${item.image}" class="w-full h-32 object-cover rounded">
                         <h3 class="text-lg font-bold mt-2">${item.name}</h3>
-                        <p class="text-gray-600">$${item.price.toFixed(2)}</p>
+                        <p class="text-gray-600">₹${item.price.toFixed(2)}</p>
                         <button onclick="addToCart(${item.id})" class="bg-red-600 text-white px-4 py-2 mt-2 rounded w-full">➕ Add to Order</button>
                     </div>
                 `;
@@ -95,16 +117,6 @@
             updateOrder();
         }
 
-        function changeQuantity(id, change) {
-            if (cart[id]) {
-                cart[id].quantity += change;
-                if (cart[id].quantity <= 0) {
-                    delete cart[id]; // Remove item if quantity is 0
-                }
-            }
-            updateOrder();
-        }
-
         function updateOrder() {
             let orderList = document.getElementById("order-items");
             let totalPrice = 0;
@@ -112,19 +124,7 @@
 
             Object.values(cart).forEach(item => {
                 totalPrice += item.price * item.quantity;
-                orderList.innerHTML += `
-                    <li class="flex justify-between items-center py-2 border-b">
-                        <div class="text-sm md:text-base">
-                            <span class="font-bold">${item.name}</span> x${item.quantity}  
-                        </div>
-                        <div class="flex">
-                            <button onclick="changeQuantity(${item.id}, -1)" class="bg-gray-400 text-white px-3 py-1 rounded">-</button>
-                            <span class="px-4">${item.quantity}</span>
-                            <button onclick="changeQuantity(${item.id}, 1)" class="bg-red-600 text-white px-3 py-1 rounded">+</button>
-                        </div>
-                        <span>$${(item.price * item.quantity).toFixed(2)}</span>
-                    </li>
-                `;
+                orderList.innerHTML += `<li class="py-2">${item.name} x${item.quantity} - ₹${(item.price * item.quantity).toFixed(2)}</li>`;
             });
 
             document.getElementById("total-price").innerText = totalPrice.toFixed(2);
@@ -132,32 +132,19 @@
 
         function placeOrder() {
             let selectedTable = document.getElementById("table-select").value;
-
-            if (!selectedTable) {
-                alert("Please select a table before placing your order!");
-                return;
-            }
-
-            if (Object.keys(cart).length === 0) {
-                alert("Your order is empty!");
-                return;
-            }
+            if (!selectedTable) return alert("Please select a table!");
+            if (Object.keys(cart).length === 0) return alert("Your order is empty!");
 
             currentOrder.table = selectedTable;
             currentOrder.status = "Confirmed";
-
-            // ✅ Update Order Tracking
             document.getElementById("order-table").innerText = selectedTable;
             document.getElementById("order-status-text").innerText = "Confirmed";
-
-            // ✅ Clear cart
             cart = {};
             updateOrder();
-            alert("Order placed successfully for " + selectedTable + "!");
+            alert("Order placed successfully!");
             showSection('order-status');
         }
 
-        // ✅ Load menu on page load
         loadMenu();
     </script>
 
