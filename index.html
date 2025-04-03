@@ -24,8 +24,20 @@
             <div id="menu-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
         </div>
         
+        <!-- Your Order Section -->
         <div id="your-order" class="section mt-6 bg-white shadow-md rounded-lg p-4">
             <h2 class="text-xl md:text-2xl font-bold">🛒 Your Order</h2>
+
+            <!-- Table Selection Dropdown -->
+            <label for="table-select" class="block font-bold mt-2">Select Your Table:</label>
+            <select id="table-select" class="w-full p-2 mt-1 border rounded">
+                <option value="">-- Choose a Table --</option>
+                <option value="Table 1">Table 1</option>
+                <option value="Table 2">Table 2</option>
+                <option value="Table 3">Table 3</option>
+                <option value="Table 4">Table 4</option>
+            </select>
+
             <ul id="order-items" class="mt-4 p-4 rounded-lg shadow bg-gray-50"></ul>
             <div class="mt-4 font-bold text-lg">Total: ₹<span id="total-price">0.00</span></div>
             <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
@@ -95,15 +107,22 @@
                 document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
             }
 
-            // ✅ Fixed: Place order when button is clicked
+            // ✅ Place order when button is clicked
             document.getElementById("placeOrderBtn").addEventListener("click", async () => {
+                const selectedTable = document.getElementById("table-select").value;
+
+                if (!selectedTable) {
+                    alert("Please select a table!");
+                    return;
+                }
+
                 if (Object.keys(cart).length === 0) {
                     alert("Your cart is empty!");
                     return;
                 }
 
                 let orderData = {
-                    table: "Table 1",
+                    table: selectedTable,
                     items: Object.values(cart).map(item => ({
                         name: item.name,
                         quantity: item.quantity,
