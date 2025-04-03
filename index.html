@@ -40,23 +40,17 @@
         // ✅ Correct Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
-  authDomain: "testmenu-4ed51.firebaseapp.com",
-  projectId: "testmenu-4ed51",
-  storageBucket: "testmenu-4ed51.firebasestorage.app",
-  messagingSenderId: "98263305480",
-  appId: "1:98263305480:web:024158941cb5f53225f0bd",
-  measurementId: "G-CX0JDH1RDP"
+            authDomain: "testmenu-4ed51.firebaseapp.com",
+            projectId: "testmenu-4ed51",
+            storageBucket: "testmenu-4ed51.appspot.com",
+            messagingSenderId: "98263305480",
+            appId: "1:98263305480:web:024158941cb5f53225f0bd",
+            measurementId: "G-CX0JDH1RDP"
         };
 
         // ✅ Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        
-        // ✅ Initialize Firestore AFTER Firebase is fully loaded
-        let db;
-        setTimeout(() => {
-            db = firebase.firestore();
-            console.log("🔥 Firestore Initialized Successfully!");
-        }, 1000); // Delay to prevent "undefined" error
+        const db = firebase.firestore();
 
         document.addEventListener("DOMContentLoaded", function () {
             const menu = [
@@ -101,7 +95,35 @@
                 document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
             }
 
-            document.getElementById("placeOrderBtn").addEventListener("click", () => alert("Order placed!"));
+            // ✅ Fixed: Place order when button is clicked
+            document.getElementById("placeOrderBtn").addEventListener("click", async () => {
+                if (Object.keys(cart).length === 0) {
+                    alert("Your cart is empty!");
+                    return;
+                }
+
+                let orderData = {
+                    table: "Table 1",
+                    items: Object.values(cart).map(item => ({
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price
+                    })),
+                    total: Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                try {
+                    const docRef = await db.collection("orders").add(orderData);
+                    console.log("✅ Order stored successfully:", docRef.id);
+                    alert("🎉 Order placed successfully! Order ID: " + docRef.id);
+                    cart = {};
+                    updateOrder();
+                } catch (error) {
+                    console.error("❌ Error storing order:", error);
+                    alert("🚨 Error placing order! Check console for details.");
+                }
+            });
 
             loadMenu();
         });
