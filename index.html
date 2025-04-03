@@ -61,8 +61,8 @@
 
     <script>
         // Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -78,9 +78,10 @@ const firebaseConfig = {
   measurementId: "G-CX0JDH1RDP"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  console.log("🔥 Firebase Initialized Successfully!");
 
         document.addEventListener("DOMContentLoaded", function () {
             function showSection(sectionId) {
