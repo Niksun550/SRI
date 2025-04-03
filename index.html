@@ -19,87 +19,45 @@
 
     <!-- Main Content -->
     <main class="mt-16 p-4 max-w-4xl mx-auto">
-
-        <!-- Menu Section -->
         <div id="menu" class="section">
             <h2 class="text-xl md:text-2xl font-bold mb-4">📜 Our Menu</h2>
             <div id="menu-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
         </div>
-
-        <!-- Your Order Section -->
+        
         <div id="your-order" class="section mt-6 bg-white shadow-md rounded-lg p-4">
             <h2 class="text-xl md:text-2xl font-bold">🛒 Your Order</h2>
-            
-            <label for="table-select" class="block font-bold mt-2">Select Your Table:</label>
-            <select id="table-select" class="w-full p-2 mt-1 border rounded">
-                <option value="">-- Choose a Table --</option>
-                <option value="Table 1">Table 1</option>
-                <option value="Table 2">Table 2</option>
-                <option value="Table 3">Table 3</option>
-                <option value="Table 4">Table 4</option>
-            </select>
-
             <ul id="order-items" class="mt-4 p-4 rounded-lg shadow bg-gray-50"></ul>
             <div class="mt-4 font-bold text-lg">Total: ₹<span id="total-price">0.00</span></div>
             <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
         </div>
-
-        <!-- Order Status Section -->
-        <div id="order-status" class="section hidden mt-6 p-6 bg-white shadow-md rounded-lg">
-            <h2 class="text-xl md:text-2xl font-bold">📦 Track Your Order</h2>
-            <p class="text-gray-600 mt-2">Your order from <span class="font-bold text-blue-600" id="order-table">N/A</span> is <span class="font-bold text-red-600" id="order-status-text">N/A</span></p>
-        </div>
-
-        <!-- Google Review Button -->
-        <div class="text-center mt-6">
-            <a href="https://www.google.com/search?q=my+restaurant+reviews" target="_blank" class="bg-blue-600 text-white px-6 py-2 rounded-lg text-lg shadow">
-                ⭐ Leave a Google Review
-            </a>
-        </div>
-
     </main>
 
-    <footer class="bg-gray-900 text-white mt-12 p-4 text-center">
-        <p class="mb-2">Follow Us:</p>
-        <div class="flex justify-center space-x-4">
-            <a href="https://facebook.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Facebook"></a>
-            <a href="https://instagram.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Instagram"></a>
-            <a href="https://twitter.com" target="_blank"><img src="https://via.placeholder.com/30" alt="Twitter"></a>
-            <a href="https://wa.me/+919876543210" target="_blank"><img src="https://via.placeholder.com/30" alt="WhatsApp"></a>
-        </div>
-        <div class="mt-4">
-            <p>Powered by</p>
-            <img src="https://via.placeholder.com/100x50" alt="Srida Technologies Logo" class="mx-auto">
-        </div>
-    </footer>
-
-    <!-- ✅ Firebase SDK (Fixed) -->
+    <!-- ✅ Firebase (Fixed) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // ✅ Firebase Configuration (Replace with your Firebase project credentials)
+        // ✅ Correct Firebase Configuration
         const firebaseConfig = {
-            apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
-  authDomain: "testmenu-4ed51.firebaseapp.com",
-  projectId: "testmenu-4ed51",
-  storageBucket: "testmenu-4ed51.firebasestorage.app",
-  messagingSenderId: "98263305480",
-  appId: "1:98263305480:web:024158941cb5f53225f0bd",
-  measurementId: "G-CX0JDH1RDP"
+            apiKey: "YOUR_FIREBASE_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // ✅ Initialize Firebase
         firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        console.log("🔥 Firebase Initialized Successfully!");
+        
+        // ✅ Initialize Firestore AFTER Firebase is fully loaded
+        let db;
+        setTimeout(() => {
+            db = firebase.firestore();
+            console.log("🔥 Firestore Initialized Successfully!");
+        }, 1000); // Delay to prevent "undefined" error
 
         document.addEventListener("DOMContentLoaded", function () {
-            function showSection(sectionId) {
-                document.querySelectorAll('.section').forEach(section => section.classList.add('hidden'));
-                document.getElementById(sectionId).classList.remove('hidden');
-            }
-
             const menu = [
                 { id: 1, name: "Pizza", price: 299, image: "https://via.placeholder.com/150" },
                 { id: 2, name: "Burger", price: 199, image: "https://via.placeholder.com/150" },
@@ -108,7 +66,6 @@
             ];
 
             let cart = {};
-            let currentOrder = { table: null, status: "Pending" };
 
             function loadMenu() {
                 const menuContainer = document.getElementById("menu-items");
