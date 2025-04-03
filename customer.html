@@ -3,59 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Customer - Restaurant</title>
+    <title>Restaurant Ordering App</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js"></script>
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 text-gray-900">
 
     <!-- Navbar -->
-    <header class="bg-red-600 text-white p-4 text-center">
-        <h1 class="text-2xl font-bold">🍽️ Welcome to Our Restaurant</h1>
+    <header class="bg-red-600 text-white p-4 flex justify-between items-center fixed top-0 w-full z-50">
+        <h1 class="text-xl md:text-2xl font-bold">🍽️ My Restaurant</h1>
+        <button onclick="showSection('order-status')" class="bg-white text-red-600 px-3 py-1 rounded text-sm md:text-base">📦 Track Order</button>
     </header>
 
-    <div class="p-6">
-
-        <!-- Table Selection -->
-        <h2 class="text-xl font-bold">Select Your Table</h2>
-        <select id="table-select" class="p-2 border w-full mt-2">
-            <option value="Table 1">Table 1</option>
-            <option value="Table 2">Table 2</option>
-            <option value="Table 3">Table 3</option>
-        </select>
+    <!-- Main Content -->
+    <main class="mt-16 p-4 max-w-4xl mx-auto">
 
         <!-- Menu Section -->
-        <h2 class="text-xl font-bold mt-4">📜 Menu</h2>
-        <div id="menu-items" class="grid grid-cols-2 gap-4 mt-2"></div>
+        <div id="menu" class="section">
+            <h2 class="text-xl md:text-2xl font-bold mb-4">📜 Our Menu</h2>
+            <div id="menu-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                <!-- Menu items will be added dynamically -->
+            </div>
+        </div>
 
-        <!-- Order Summary -->
-        <h2 class="text-xl font-bold mt-4">🛒 Your Order</h2>
-        <ul id="cart-items" class="bg-white p-4 rounded shadow mt-2"></ul>
-        <button id="place-order" class="bg-green-600 text-white p-2 rounded w-full mt-2">Place Order</button>
+        <!-- Your Order Section -->
+        <div id="your-order" class="section mt-6 bg-white shadow-md rounded-lg p-4">
+            <h2 class="text-xl md:text-2xl font-bold">🛒 Your Order</h2>
 
-        <!-- Order Status -->
-        <h2 class="text-xl font-bold mt-4">📦 Order Status</h2>
-        <p id="order-status" class="text-red-600 font-bold">Pending</p>
+            <!-- Table Selection -->
+            <label for="table-select" class="block font-bold mt-2">Select Your Table:</label>
+            <select id="table-select" class="w-full p-2 mt-1 border rounded">
+                <option value="">-- Choose a Table --</option>
+                <option value="Table 1">Table 1</option>
+                <option value="Table 2">Table 2</option>
+                <option value="Table 3">Table 3</option>
+                <option value="Table 4">Table 4</option>
+            </select>
 
-    </div>
+            <!-- Order Items -->
+            <ul id="order-items" class="mt-4 p-4 rounded-lg shadow bg-gray-50"></ul>
+            <div class="mt-4 font-bold text-lg">Total: $<span id="total-price">0.00</span></div>
+            <button onclick="placeOrder()" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
+        </div>
+
+        <!-- Order Status Section -->
+        <div id="order-status" class="section hidden mt-6 p-6 bg-white shadow-md rounded-lg">
+            <h2 class="text-xl md:text-2xl font-bold">📦 Track Your Order</h2>
+            <p class="text-gray-600 mt-2">Your order from <span class="font-bold text-blue-600" id="order-table">N/A</span> is <span class="font-bold text-red-600" id="order-status-text">N/A</span></p>
+        </div>
+
+    </main>
 
     <script>
-        // Firebase Setup
-        const firebaseConfig = {
-            apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
-            authDomain: "testmenu-4ed51.firebaseapp.com",
-            projectId: "testmenu-4ed51",
-            storageBucket: "testmenu-4ed51.firebasestorage.app",
-            messagingSenderId: "98263305480",
-            appId: "1:98263305480:web:024158941cb5f53225f0bd"
-            measurementId: "G-CX0JDH1RDP"
-        };
+        // ✅ Show Sections
+        function showSection(sectionId) {
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            document.getElementById(sectionId).classList.remove('hidden');
+        }
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        // Menu Data
+        // ✅ Sample menu data
         const menu = [
             { id: 1, name: "Pizza", price: 12.99, image: "https://via.placeholder.com/150" },
             { id: 2, name: "Burger", price: 9.99, image: "https://via.placeholder.com/150" },
@@ -63,83 +70,94 @@
             { id: 4, name: "Salad", price: 5.99, image: "https://via.placeholder.com/150" }
         ];
 
-        const cart = {};
+        // ✅ Cart with Quantity Handling
+        let cart = {};
+        let currentOrder = { table: null, status: "Pending" }; // Stores current order details
 
-        // Load menu items dynamically
         function loadMenu() {
             let menuContainer = document.getElementById("menu-items");
             menuContainer.innerHTML = "";
             menu.forEach(item => {
                 menuContainer.innerHTML += `
                     <div class="bg-white p-4 rounded-lg shadow text-center">
-                        <img src="${item.image}" class="w-full h-40 object-cover rounded">
+                        <img src="${item.image}" class="w-full h-32 object-cover rounded">
                         <h3 class="text-lg font-bold mt-2">${item.name}</h3>
                         <p class="text-gray-600">$${item.price.toFixed(2)}</p>
-                        <div class="flex justify-between mt-2">
-                            <button onclick="changeQuantity(${item.id}, -1)" class="bg-gray-400 text-white px-2 py-1 rounded">-</button>
-                            <span id="qty-${item.id}" class="px-4">0</span>
-                            <button onclick="changeQuantity(${item.id}, 1)" class="bg-red-600 text-white px-2 py-1 rounded">+</button>
-                        </div>
+                        <button onclick="addToCart(${item.id})" class="bg-red-600 text-white px-4 py-2 mt-2 rounded w-full">➕ Add to Order</button>
                     </div>
                 `;
             });
         }
 
-        // Update cart quantity
-        function changeQuantity(id, change) {
+        function addToCart(id) {
             if (!cart[id]) cart[id] = { ...menu.find(m => m.id === id), quantity: 0 };
-            cart[id].quantity += change;
-            if (cart[id].quantity < 0) cart[id].quantity = 0;
-
-            document.getElementById(`qty-${id}`).innerText = cart[id].quantity;
-            updateCart();
+            cart[id].quantity += 1;
+            updateOrder();
         }
 
-        // Update Cart UI
-        function updateCart() {
-            let cartList = document.getElementById("cart-items");
-            cartList.innerHTML = "";
-            let total = 0;
+        function changeQuantity(id, change) {
+            if (cart[id]) {
+                cart[id].quantity += change;
+                if (cart[id].quantity <= 0) {
+                    delete cart[id]; // Remove item if quantity is 0
+                }
+            }
+            updateOrder();
+        }
+
+        function updateOrder() {
+            let orderList = document.getElementById("order-items");
+            let totalPrice = 0;
+            orderList.innerHTML = "";
 
             Object.values(cart).forEach(item => {
-                if (item.quantity > 0) {
-                    total += item.price * item.quantity;
-                    cartList.innerHTML += `
-                        <li class="flex justify-between py-2 border-b">${item.name} x${item.quantity} 
-                        <span>$${(item.price * item.quantity).toFixed(2)}</span></li>
-                    `;
-                }
+                totalPrice += item.price * item.quantity;
+                orderList.innerHTML += `
+                    <li class="flex justify-between items-center py-2 border-b">
+                        <div class="text-sm md:text-base">
+                            <span class="font-bold">${item.name}</span> x${item.quantity}  
+                        </div>
+                        <div class="flex">
+                            <button onclick="changeQuantity(${item.id}, -1)" class="bg-gray-400 text-white px-3 py-1 rounded">-</button>
+                            <span class="px-4">${item.quantity}</span>
+                            <button onclick="changeQuantity(${item.id}, 1)" class="bg-red-600 text-white px-3 py-1 rounded">+</button>
+                        </div>
+                        <span>$${(item.price * item.quantity).toFixed(2)}</span>
+                    </li>
+                `;
             });
 
-            document.getElementById("place-order").innerText = `Place Order ($${total.toFixed(2)})`;
+            document.getElementById("total-price").innerText = totalPrice.toFixed(2);
         }
 
-        // Place order in Firebase
-        async function placeOrder() {
-            const table = document.getElementById("table-select").value;
-            const order = {
-                table,
-                items: Object.values(cart).filter(i => i.quantity > 0),
-                status: "Pending"
-            };
+        function placeOrder() {
+            let selectedTable = document.getElementById("table-select").value;
 
-            await db.collection("orders").add(order);
-            alert("Order Placed Successfully!");
-            for (let id in cart) cart[id].quantity = 0;
-            updateCart();
+            if (!selectedTable) {
+                alert("Please select a table before placing your order!");
+                return;
+            }
+
+            if (Object.keys(cart).length === 0) {
+                alert("Your order is empty!");
+                return;
+            }
+
+            currentOrder.table = selectedTable;
+            currentOrder.status = "Confirmed";
+
+            // ✅ Update Order Tracking
+            document.getElementById("order-table").innerText = selectedTable;
+            document.getElementById("order-status-text").innerText = "Confirmed";
+
+            // ✅ Clear cart
+            cart = {};
+            updateOrder();
+            alert("Order placed successfully for " + selectedTable + "!");
+            showSection('order-status');
         }
 
-        // Track order status in real-time
-        db.collection("orders").onSnapshot((snapshot) => {
-            snapshot.docs.forEach(doc => {
-                const order = doc.data();
-                document.getElementById("order-status").innerText = order.status;
-            });
-        });
-
-        // Initialize menu and event listeners
-        document.getElementById("place-order").addEventListener("click", placeOrder);
-        window.changeQuantity = changeQuantity;
+        // ✅ Load menu on page load
         loadMenu();
     </script>
 
