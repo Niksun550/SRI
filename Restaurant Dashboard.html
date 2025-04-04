@@ -214,39 +214,36 @@
             document.getElementById("managerSection").classList.remove("active-role");
             document.getElementById("chefSection").classList.remove("active-role");
 
-            // Show the selected role section
             if (role === 'admin') {
-                showAdminPasswordDialog();
-            } else if (role === 'manager') {
-                document.getElementById("managerSection").classList.add("active-role");
-            } else if (role === 'chef') {
-                document.getElementById("chefSection").classList.add("active-role");
+                // Admin password check
+                document.getElementById("passwordDialog").style.display = 'flex';
+            } else {
+                document.getElementById(`${role}Section`).classList.add("active-role");
             }
         }
 
-        // Show Password Dialog for Admin
-        function showAdminPasswordDialog() {
-            document.getElementById('passwordDialog').style.display = 'flex';
-        }
-
-        // Check Admin Password
+        // Admin password check
         function checkPassword() {
-            const password = document.getElementById('adminPassword').value;
+            const password = document.getElementById("adminPassword").value;
             if (password === 'admin123') {
-                document.getElementById('passwordDialog').style.display = 'none';
+                document.getElementById("passwordDialog").style.display = 'none';
                 document.getElementById("adminSection").classList.add("active-role");
             } else {
-                alert('Incorrect Password');
+                alert('Incorrect password!');
             }
         }
 
-        // Close Password Dialog
         function closePasswordDialog() {
-            document.getElementById('passwordDialog').style.display = 'none';
+            document.getElementById("passwordDialog").style.display = 'none';
         }
 
-        // Set default role to Manager on load
-        setRole('manager');
+        // Load menu and orders (to be implemented based on your logic)
+        function loadMenu() {
+            // Logic for loading menu and orders goes here
+        }
+
+        loadMenu();
     </script>
+
 </body>
 </html>
