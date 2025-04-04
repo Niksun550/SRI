@@ -99,7 +99,7 @@
                 <!-- Admin Role -->
                 <div id="adminCard" class="role-card" onclick="setRole('admin')">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l3-3m-3 3l-3-3m6 3l-3 3m0 0l-3-3m3 3v6m-6-6l-3 3m3-3l3-3m-9 6h6m6 0h6M3 12h6" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v6m0 0l3-3m-3 3l-3-3m6 3l-3 3m0 0l-3-3m3 3v6m-6-6l-3 3m3-3l3-3m-9 6h6m6 0h6M3 12h6" />
                     </svg>
                     <h3 class="font-semibold">Admin</h3>
                 </div>
@@ -195,95 +195,25 @@
         </div>
     </footer>
 
-    <!-- Firebase Scripts -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
-
     <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
-            authDomain: "testmenu-4ed51.firebaseapp.com",
-            projectId: "testmenu-4ed51",
-            storageBucket: "testmenu-4ed51.appspot.com",
-            messagingSenderId: "98263305480",
-            appId: "1:98263305480:web:024158941cb5f53225f0bd",
-            measurementId: "G-CX0JDH1RDP"
-        };
+        function setRole(role) {
+            document.querySelectorAll(".role-section").forEach(section => section.style.display = "none");
+            document.getElementById(`${role}Section`).style.display = "block";
+        }
 
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
-        document.addEventListener("DOMContentLoaded", function () {
-            const menu = [
-                { id: 1, name: "Pizza", price: 299 },
-                { id: 2, name: "Burger", price: 199 },
-                { id: 3, name: "Pasta", price: 249 },
-                { id: 4, name: "Salad", price: 149 }
-            ];
-
-            let cart = {};
-
-            function loadMenu() {
-                const menuContainer = document.getElementById("menu-items");
-                menuContainer.innerHTML = "";
-                menu.forEach(item => {
-                    const menuItem = document.createElement("div");
-                    menuItem.className = "bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition duration-200 transform hover:-translate-y-1";
-                    menuItem.innerHTML = `
-                        <h3 class="text-lg font-bold mt-2">${item.name}</h3>
-                        <p class="text-gray-600">₹${item.price.toFixed(2)}</p>
-                        <button class="add-to-cart bg-red-600 text-white px-2 py-1 mt-2 rounded text-sm w-full" data-id="${item.id}">➕ Add to Order</button>
-                    `;
-                    menuContainer.appendChild(menuItem);
-                });
-
-                document.querySelectorAll(".add-to-cart").forEach(button => {
-                    button.addEventListener("click", function () {
-                        addToCart(parseInt(this.getAttribute("data-id")));
-                    });
-                });
-            }
-
-            function addToCart(id) {
-                if (!cart[id]) cart[id] = { ...menu.find(m => m.id === id), quantity: 0 };
-                cart[id].quantity += 1;
-                updateOrder();
-            }
-
-            function updateOrder() {
-                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity}</li>`).join('');
-                document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
-            }
-
-            // Show Role-specific Sections
-            function setRole(role) {
-                document.querySelectorAll(".role-section").forEach(section => section.style.display = "none");
-                document.getElementById(`${role}Section`).style.display = "block";
-
-                if (role === 'admin') {
-                    document.getElementById("passwordDialog").style.display = 'flex';
-                }
-            }
-
-            // Admin password check
-            function checkPassword() {
-                const password = document.getElementById("adminPassword").value;
-                if (password === 'admin123') {
-                    document.getElementById("passwordDialog").style.display = 'none';
-                    document.getElementById("adminSection").style.display = 'block';
-                } else {
-                    alert('Incorrect password!');
-                }
-            }
-
-            function closePasswordDialog() {
+        function checkPassword() {
+            const password = document.getElementById("adminPassword").value;
+            if (password === 'admin123') {
                 document.getElementById("passwordDialog").style.display = 'none';
+                document.getElementById("adminSection").style.display = 'block';
+            } else {
+                alert('Incorrect password!');
             }
+        }
 
-            // Load the Menu
-            loadMenu();
-        });
+        function closePasswordDialog() {
+            document.getElementById("passwordDialog").style.display = 'none';
+        }
     </script>
-
 </body>
 </html>
