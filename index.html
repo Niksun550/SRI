@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Restaurant | Order Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
         /* Sticky "Your Order" section at bottom */
         #your-order {
@@ -60,15 +60,25 @@
         }
 
         .add-to-cart {
-            font-size: 0.875rem; /* smaller button */
+            font-size: 0.8rem;
+            padding: 5px 10px;
+            width: 100%;
+            cursor: pointer;
         }
 
-        .quantity-display {
-            display: inline-block;
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .cart-item button {
             padding: 5px 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            margin-left: 10px;
+            font-size: 0.8rem;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
@@ -116,22 +126,15 @@
         </div>
     </div>
 
-    <!-- Google Review Link -->
-    <div class="text-center mt-6">
-        <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
-    </div>
-
     <!-- Footer Section -->
     <footer class="bg-gray-900 text-white text-center p-6 mt-10">
         <div class="flex justify-center space-x-6 mb-4">
-            <!-- Social Media Icons -->
             <a href="https://facebook.com" target="_blank" class="text-blue-500 text-2xl"><i class="fab fa-facebook"></i></a>
             <a href="https://instagram.com" target="_blank" class="text-pink-500 text-2xl"><i class="fab fa-instagram"></i></a>
             <a href="https://twitter.com" target="_blank" class="text-blue-400 text-2xl"><i class="fab fa-twitter"></i></a>
             <a href="https://wa.me/1234567890" target="_blank" class="text-green-500 text-2xl"><i class="fab fa-whatsapp"></i></a>
         </div>
 
-        <!-- Powered By SRIDA TECHNOLOGIES -->
         <div class="flex justify-center items-center space-x-3">
             <p class="text-sm">Powered by <span class="font-bold">SRIDA TECHNOLOGIES</span></p>
             <img src="https://via.placeholder.com/100x40?text=SRIDA+Logo" alt="SRIDA Logo" class="h-10">
@@ -183,7 +186,9 @@
 
                 document.querySelectorAll(".add-to-cart").forEach(button => {
                     button.addEventListener("click", function () {
-                        addToCart(parseInt(this.getAttribute("data-id")));
+                        const button = this;
+                        const id = parseInt(button.getAttribute("data-id"));
+                        addToCart(id);
                     });
                 });
             }
@@ -195,38 +200,73 @@
             }
 
             function updateOrder() {
-                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `
-                    <li class="flex justify-between items-center">
-                        ${item.name} x${item.quantity}
-                        <div>
-                            <button class="quantity-btn" data-id="${item.id}" data-action="decrease">-</button>
-                            <span class="quantity-display">${item.quantity}</span>
-                            <button class="quantity-btn" data-id="${item.id}" data-action="increase">+</button>
-                        </div>
-                    </li>`).join('');
+                const orderItems = Object.values(cart).map(item => {
+                    return `
+                        <li class="cart-item">
+                            <span>${item.name} x${item.quantity}</span>
+                            <div>
+                                <button class="quantity-btn increase" data-id="${item.id}">+</button>
+                                <button class="quantity-btn decrease" data-id="${item.id}">-</button>
+                            </div>
+                        </li>
+                    `;
+                }).join('');
+                document.getElementById("order-items").innerHTML = orderItems;
                 document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
-
-                // Add event listeners for increase/decrease
-                document.querySelectorAll(".quantity-btn").forEach(button => {
+                
+                // Attach events to increase and decrease buttons
+                document.querySelectorAll(".increase").forEach(button => {
                     button.addEventListener("click", function () {
                         const id = parseInt(this.getAttribute("data-id"));
-                        const action = this.getAttribute("data-action");
-                        if (action === "increase") {
-                            cart[id].quantity += 1;
-                        } else if (action === "decrease" && cart[id].quantity > 1) {
-                            cart[id].quantity -= 1;
-                        }
+                        cart[id].quantity += 1;
                         updateOrder();
+                    });
+                });
+
+                document.querySelectorAll(".decrease").forEach(button => {
+                    button.addEventListener("click", function () {
+                        const id = parseInt(this.getAttribute("data-id"));
+                        if (cart[id].quantity > 1) {
+                            cart[id].quantity -= 1;
+                            updateOrder();
+                        }
                     });
                 });
             }
 
             // Track Order
             document.getElementById("trackOrderBtn").addEventListener("click", function () {
-                alert("Tracking order functionality is not yet implemented!");
+                alert("Track order functionality is coming soon!");
             });
 
-            // Load menu items on page load
+            // Place order
+            document.getElementById("placeOrderBtn").addEventListener("click", async () => {
+                const selectedTable = document.getElementById("table-select").value;
+                if (!selectedTable) {
+                    alert("Please select a table!");
+                    return;
+                }
+                if (Object.keys(cart).length === 0) {
+                    alert("Your cart is empty!");
+                    return;
+                }
+
+                let orderData = {
+                    table: selectedTable,
+                    items: Object.values(cart).map(item => ({
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price
+                    })),
+                    total: Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Save order to Firestore
+                await db.collection("orders").add(orderData);
+                alert("Your order has been placed!");
+            });
+
             loadMenu();
         });
     </script>
