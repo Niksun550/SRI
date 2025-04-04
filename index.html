@@ -11,24 +11,11 @@
         /* Sticky "Your Order" section */
         #your-order {
             position: sticky;
-            top: 6rem; /* distance from top of the viewport */
+            top: 6rem; /* Distance from top */
             max-height: 80vh;
             overflow-y: auto;
             scrollbar-width: thin;
-            z-index: 50; /* ensure it sits above other content */
-        }
-
-        /* Sticky "Place Order" button */
-        #placeOrderBtn {
-            position: sticky;
-            bottom: 0;
-            background-color: #38a169; /* Tailwind's green-600 */
-            color: white;
-            padding: 12px 16px;
-            font-size: 1.125rem; /* text-lg */
-            width: 100%;
-            border-radius: 0 0 8px 8px; /* rounded bottom corners */
-            box-shadow: 0 -4px 8px rgba(0,0,0,0.1);
+            display: none; /* Initially hidden */
         }
     </style>
 </head>
@@ -50,6 +37,13 @@
             <div id="menu-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
         </div>
         
+        <!-- View Order Button -->
+        <div class="mt-6">
+            <button id="viewOrderBtn" class="bg-blue-500 text-white px-4 py-2 rounded-full w-full text-lg">
+                👀 View Order
+            </button>
+        </div>
+
         <!-- Your Order Section -->
         <div id="your-order" class="section mt-6 bg-white shadow-lg rounded-xl p-4 border-2 border-red-500">
             <h2 class="text-xl md:text-2xl font-extrabold text-red-600 mb-2">🛒 Your Order</h2>
@@ -66,15 +60,14 @@
 
             <ul id="order-items" class="mt-4 p-4 rounded-lg bg-gray-50 shadow-inner space-y-2 text-sm font-medium text-gray-800"></ul>
             <div class="mt-4 font-bold text-lg">Total: ₹<span id="total-price">0.00</span></div>
+            <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
         </div>
-
-        <!-- Sticky Place Order Button -->
-        <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
 
         <!-- Google Review Link -->
         <div class="text-center mt-6">
             <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
         </div>
+
     </main>
 
     <!-- Footer Section -->
@@ -164,6 +157,12 @@
                 document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity} - ₹${(item.price * item.quantity).toFixed(2)}</li>`).join('');
                 document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
             }
+
+            // Show "Your Order" section when "View Order" is clicked
+            document.getElementById("viewOrderBtn").addEventListener("click", () => {
+                const yourOrderSection = document.getElementById("your-order");
+                yourOrderSection.style.display = yourOrderSection.style.display === 'none' ? 'block' : 'none';
+            });
 
             // ✅ Place order when button is clicked
             document.getElementById("placeOrderBtn").addEventListener("click", async () => {
