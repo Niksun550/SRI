@@ -7,24 +7,77 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-        /* General style for role icons */
-        .role-icon {
-            width: 80px;
-            height: 80px;
-            cursor: pointer;
-            transition: transform 0.3s ease-in-out, filter 0.3s ease-in-out;
-        }
-        .role-icon:hover {
-            transform: scale(1.1);
-            filter: brightness(1.2);
-        }
-
         .role-section {
             display: none;
         }
 
         .active-role {
             display: block;
+        }
+
+        .tab-button {
+            padding: 10px;
+            margin-right: 10px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Style for the Role Icons */
+        .role-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: #f3f4f6;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .role-card:hover {
+            background-color: #ef4444;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .role-card svg {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+
+        /* For responsiveness */
+        @media (max-width: 768px) {
+            .role-cards-container {
+                flex-direction: column;
+            }
+        }
+
+        /* Admin Password Dialog */
+        .password-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .password-dialog-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
         }
     </style>
 </head>
@@ -34,54 +87,97 @@
     <header class="bg-red-600 text-white p-4 flex justify-between items-center fixed top-0 w-full z-50">
         <div class="flex items-center">
             <img src="https://via.placeholder.com/50" alt="Restaurant Logo" class="h-10 w-10 rounded-full mr-2">
-            <h1 class="text-lg md:text-2xl font-bold">🍽️ My Restaurant Dashboard</h1>
+            <h1 class="text-lg md:text-2xl font-bold">🍽️ Restaurant Dashboard</h1>
         </div>
-        <button id="trackOrderBtn" class="bg-white text-red-600 px-3 py-1 rounded text-sm md:text-base">📦 Track Order</button>
     </header>
 
     <!-- Main Content -->
     <main class="mt-16 p-4 max-w-4xl mx-auto">
-        <div class="flex justify-center space-x-10">
-            <!-- Role Icons (Admin, Manager, Chef) -->
-            <div id="admin-icon" class="role-icon" title="Admin">
-                <img src="/mnt/data/admin-svgrepo-com.svg" alt="Admin Icon" class="role-icon" onclick="showSection('admin')">
-            </div>
-            <div id="manager-icon" class="role-icon" title="Manager">
-                <img src="/mnt/data/Manger-svgrepo-com.svg" alt="Manager Icon" class="role-icon" onclick="showSection('manager')">
-            </div>
-            <div id="chef-icon" class="role-icon" title="Chef">
-                <img src="/mnt/data/chef-svgrepo-com.svg" alt="Chef Icon" class="role-icon" onclick="showSection('chef')">
+        <div class="text-center mb-6">
+            <h2 class="text-xl md:text-2xl font-bold mb-4">Select Your Role</h2>
+            <div class="role-cards-container flex justify-center gap-10">
+                <!-- Admin Role -->
+                <div id="adminCard" class="role-card" onclick="setRole('admin')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l3-3m-3 3l-3-3m6 3l-3 3m0 0l-3-3m3 3v6m-6-6l-3 3m3-3l3-3m-9 6h6m6 0h6M3 12h6" />
+                    </svg>
+                    <h3 class="font-semibold">Admin</h3>
+                </div>
+
+                <!-- Manager Role -->
+                <div id="managerCard" class="role-card" onclick="setRole('manager')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                    <h3 class="font-semibold">Manager</h3>
+                </div>
+
+                <!-- Chef Role -->
+                <div id="chefCard" class="role-card" onclick="setRole('chef')">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4V2m0 0H5m4 0h4m2 2h4m-4 0v4m4-4l-4 4m-2 4h4m4 0l-4 4m0-4l-4 4" />
+                    </svg>
+                    <h3 class="font-semibold">Chef</h3>
+                </div>
             </div>
         </div>
 
-        <!-- Role Sections -->
-        <div id="admin-section" class="role-section">
-            <h2 class="text-2xl font-bold">Admin Section</h2>
-            <p>Only admin can add new menu items and edit restaurant settings.</p>
-            <!-- Admin Section content -->
-            <button id="admin-password-btn" class="bg-green-500 text-white px-4 py-2 rounded mt-4">Enter Admin</button>
-            <div id="admin-password-section" class="hidden">
-                <label for="admin-password">Enter Password: </label>
-                <input type="password" id="admin-password" placeholder="Password" class="p-2 border rounded">
-                <button onclick="verifyAdminPassword()" class="bg-blue-500 text-white px-4 py-2 mt-2 rounded">Submit</button>
+        <!-- Admin Section -->
+        <div id="adminSection" class="role-section">
+            <h2 class="text-xl font-bold mb-4">Admin - Manage Menu & Settings</h2>
+            <div>
+                <h3 class="text-lg font-semibold">Menu Management</h3>
+                <button class="bg-green-600 text-white px-4 py-2 rounded mb-4" id="addMenuItem">Add New Menu Item</button>
+                <ul id="menuList">
+                    <!-- Menu items will be dynamically added here -->
+                </ul>
             </div>
-            <!-- Admin Controls -->
+            <div>
+                <h3 class="text-lg font-semibold">Settings</h3>
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded">Edit Restaurant Settings</button>
+            </div>
         </div>
 
-        <div id="manager-section" class="role-section">
-            <h2 class="text-2xl font-bold">Manager Section</h2>
-            <p>Manager can view table-wise pending orders and manage them.</p>
-            <!-- Manager Section content -->
-            <!-- Add controls for manager -->
+        <!-- Manager Section -->
+        <div id="managerSection" class="role-section">
+            <h2 class="text-xl font-bold mb-4">Manager - Approve Orders / Order Edit</h2>
+            <div>
+                <h3 class="text-lg font-semibold">Pending Orders</h3>
+                <ul id="pendingOrders">
+                    <!-- Pending orders will be dynamically added here -->
+                </ul>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold">Order Management</h3>
+                <button class="bg-blue-500 text-white px-4 py-2 rounded">Manage Orders</button>
+            </div>
         </div>
 
-        <div id="chef-section" class="role-section">
-            <h2 class="text-2xl font-bold">Chef Section</h2>
-            <p>Chef can view table-wise orders and update the order status.</p>
-            <!-- Chef Section content -->
-            <!-- Add controls for chef -->
+        <!-- Chef Section -->
+        <div id="chefSection" class="role-section">
+            <h2 class="text-xl font-bold mb-4">Chef - Cook & Update Order Status</h2>
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold">Orders to Cook</h3>
+                <ul id="chefOrders">
+                    <!-- Orders to be cooked will be dynamically added here -->
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold">Update Order Status</h3>
+                <button class="bg-red-500 text-white px-4 py-2 rounded">Update Order Status</button>
+            </div>
         </div>
     </main>
+
+    <!-- Admin Password Dialog -->
+    <div id="passwordDialog" class="password-dialog">
+        <div class="password-dialog-content">
+            <h3 class="text-xl font-bold mb-4">Enter Admin Password</h3>
+            <input type="password" id="adminPassword" class="border p-2 mb-4 w-full" placeholder="Password">
+            <button onclick="checkPassword()" class="bg-red-600 text-white px-4 py-2 rounded">Submit</button>
+            <button onclick="closePasswordDialog()" class="bg-gray-600 text-white px-4 py-2 rounded mt-2">Cancel</button>
+        </div>
+    </div>
 
     <!-- Footer Section -->
     <footer class="bg-gray-900 text-white text-center p-6 mt-10">
@@ -93,42 +189,101 @@
             <a href="https://wa.me/1234567890" target="_blank" class="text-green-500 text-2xl"><i class="fab fa-whatsapp"></i></a>
         </div>
 
+        <!-- Powered By SRIDA TECHNOLOGIES -->
         <div class="flex justify-center items-center space-x-3">
             <p class="text-sm">Powered by <span class="font-bold">SRIDA TECHNOLOGIES</span></p>
-            <img src="https://via.placeholder.com/100x40?text=SRIDA+Logo" alt="SRIDA Logo" class="h-10">
         </div>
     </footer>
 
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
     <script>
-        // Show selected section
-        function showSection(role) {
-            // Hide all sections first
-            document.getElementById("admin-section").classList.remove("active-role");
-            document.getElementById("manager-section").classList.remove("active-role");
-            document.getElementById("chef-section").classList.remove("active-role");
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
+            authDomain: "testmenu-4ed51.firebaseapp.com",
+            projectId: "testmenu-4ed51",
+            storageBucket: "testmenu-4ed51.appspot.com",
+            messagingSenderId: "98263305480",
+            appId: "1:98263305480:web:024158941cb5f53225f0bd",
+            measurementId: "G-CX0JDH1RDP"
+        };
 
-            // Show selected section
-            if (role === 'admin') {
-                document.getElementById("admin-section").classList.add("active-role");
-            } else if (role === 'manager') {
-                document.getElementById("manager-section").classList.add("active-role");
-            } else if (role === 'chef') {
-                document.getElementById("chef-section").classList.add("active-role");
-            }
-        }
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-        // Admin Password Verification Logic
-        function verifyAdminPassword() {
-            const password = document.getElementById("admin-password").value;
-            if (password === "admin123") {
-                alert("Admin Verified!");
-                // Show Admin Controls
-                document.getElementById("admin-password-section").style.display = "none";
-                // Further admin controls code goes here
-            } else {
-                alert("Incorrect password!");
+        document.addEventListener("DOMContentLoaded", function () {
+            const menu = [
+                { id: 1, name: "Pizza", price: 299 },
+                { id: 2, name: "Burger", price: 199 },
+                { id: 3, name: "Pasta", price: 249 },
+                { id: 4, name: "Salad", price: 149 }
+            ];
+
+            let cart = {};
+
+            function loadMenu() {
+                const menuContainer = document.getElementById("menu-items");
+                menuContainer.innerHTML = "";
+                menu.forEach(item => {
+                    const menuItem = document.createElement("div");
+                    menuItem.className = "bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition duration-200 transform hover:-translate-y-1";
+                    menuItem.innerHTML = `
+                        <h3 class="text-lg font-bold mt-2">${item.name}</h3>
+                        <p class="text-gray-600">₹${item.price.toFixed(2)}</p>
+                        <button class="add-to-cart bg-red-600 text-white px-2 py-1 mt-2 rounded text-sm w-full" data-id="${item.id}">➕ Add to Order</button>
+                    `;
+                    menuContainer.appendChild(menuItem);
+                });
+
+                document.querySelectorAll(".add-to-cart").forEach(button => {
+                    button.addEventListener("click", function () {
+                        addToCart(parseInt(this.getAttribute("data-id")));
+                    });
+                });
             }
-        }
+
+            function addToCart(id) {
+                if (!cart[id]) cart[id] = { ...menu.find(m => m.id === id), quantity: 0 };
+                cart[id].quantity += 1;
+                updateOrder();
+            }
+
+            function updateOrder() {
+                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity}</li>`).join('');
+                document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+            }
+
+            // Show Role-specific Sections
+            function setRole(role) {
+                document.querySelectorAll(".role-section").forEach(section => section.style.display = "none");
+                document.getElementById(`${role}Section`).style.display = "block";
+
+                if (role === 'admin') {
+                    document.getElementById("passwordDialog").style.display = 'flex';
+                }
+            }
+
+            // Admin password check
+            function checkPassword() {
+                const password = document.getElementById("adminPassword").value;
+                if (password === 'admin123') {
+                    document.getElementById("passwordDialog").style.display = 'none';
+                    document.getElementById("adminSection").style.display = 'block';
+                } else {
+                    alert('Incorrect password!');
+                }
+            }
+
+            function closePasswordDialog() {
+                document.getElementById("passwordDialog").style.display = 'none';
+            }
+
+            // Load the Menu
+            loadMenu();
+        });
     </script>
+
 </body>
 </html>
