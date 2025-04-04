@@ -1,23 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Restaurant | Order Online</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons for Social Media -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-        /* Sticky "Your Order" section */
+        /* Sticky "Your Order" section at bottom */
         #your-order {
-            position: sticky;
-            top: 6rem;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            border-top: 2px solid #ef4444;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
             max-height: 80vh;
             overflow-y: auto;
-            scrollbar-width: thin;
+            transition: all 0.3s ease;
+        }
+
+        #order-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        #order-summary p {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        #view-btn {
+            font-size: 1rem;
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #full-order {
+            display: none;
+            margin-top: 10px;
+        }
+
+        #your-order.open {
+            max-height: none;
+        }
+
+        .quantity-btn {
+            font-size: 1.25rem;
+            margin: 0 5px;
+            cursor: pointer;
         }
     </style>
 </head>
+
 <body class="bg-gray-100 text-gray-900">
 
     <!-- Navbar -->
@@ -35,11 +78,16 @@
             <h2 class="text-xl md:text-2xl font-bold mb-4">📜 Our Menu</h2>
             <div id="menu-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
         </div>
-        
-        <!-- Your Order Section -->
-        <div id="your-order" class="section mt-6 bg-white shadow-lg rounded-xl p-4 border-2 border-red-500">
-            <h2 class="text-xl md:text-2xl font-extrabold text-red-600 mb-2">🛒 Your Order</h2>
+    </main>
 
+    <!-- Your Order Section -->
+    <div id="your-order" class="section mt-6 bg-white shadow-lg rounded-xl p-4 border-2 border-red-500">
+        <div id="order-summary">
+            <p>🛒 Your Order</p>
+            <button id="view-btn">View</button>
+        </div>
+
+        <div id="full-order">
             <!-- Table Selection Dropdown -->
             <label for="table-select" class="block font-bold mt-2">Select Your Table:</label>
             <select id="table-select" class="w-full p-2 mt-1 border rounded">
@@ -54,13 +102,12 @@
             <div class="mt-4 font-bold text-lg">Total: ₹<span id="total-price">0.00</span></div>
             <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
         </div>
+    </div>
 
-        <!-- Google Review Link -->
-        <div class="text-center mt-6">
-            <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
-        </div>
-
-    </main>
+    <!-- Google Review Link -->
+    <div class="text-center mt-6">
+        <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
+    </div>
 
     <!-- Footer Section -->
     <footer class="bg-gray-900 text-white text-center p-6 mt-10">
@@ -79,12 +126,11 @@
         </div>
     </footer>
 
-    <!-- ✅ Firebase (Fixed) -->
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
     <script>
-        // ✅ Correct Firebase Configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
             authDomain: "testmenu-4ed51.firebaseapp.com",
@@ -95,7 +141,6 @@
             measurementId: "G-CX0JDH1RDP"
         };
 
-        // ✅ Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
@@ -135,22 +180,24 @@
                 if (!cart[id]) cart[id] = { ...menu.find(m => m.id === id), quantity: 0 };
                 cart[id].quantity += 1;
                 updateOrder();
-
-                // Update button count
-                const button = document.querySelector(`button[data-id="${id}"]`);
-                button.innerText = `➕ ${cart[id].quantity} Selected`;
-                
-                // Button Pulse Animation
-                button.classList.add('animate-pulse');
-                setTimeout(() => button.classList.remove('animate-pulse'), 300);
             }
 
+            // Update cart view
             function updateOrder() {
-                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity} - ₹${(item.price * item.quantity).toFixed(2)}</li>`).join('');
+                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity}</li>`).join('');
                 document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
             }
 
-            // ✅ Place order when button is clicked
+            // Toggle View button to show full order details
+            document.getElementById("view-btn").addEventListener("click", () => {
+                const orderSection = document.getElementById("your-order");
+                const fullOrderSection = document.getElementById("full-order");
+
+                orderSection.classList.toggle("open");
+                fullOrderSection.style.display = fullOrderSection.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Place order
             document.getElementById("placeOrderBtn").addEventListener("click", async () => {
                 const selectedTable = document.getElementById("table-select").value;
 
@@ -175,21 +222,16 @@
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
-                try {
-                    const docRef = await db.collection("orders").add(orderData);
-                    console.log("✅ Order stored successfully:", docRef.id);
-                    alert("🎉 Order placed successfully! Order ID: " + docRef.id);
-                    cart = {};
-                    updateOrder();
-                } catch (error) {
-                    console.error("❌ Error storing order:", error);
-                    alert("🚨 Error placing order! Check console for details.");
-                }
+                // Save order to Firestore
+                await db.collection("orders").add(orderData);
+                alert("Your order has been placed!");
             });
 
+            // Load menu items on page load
             loadMenu();
         });
     </script>
 
 </body>
+
 </html>
