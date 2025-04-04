@@ -45,7 +45,7 @@
             transform: scale(1.05);
         }
 
-        .role-card img {
+        .role-card svg {
             width: 60px;
             height: 60px;
             margin-bottom: 15px;
@@ -98,19 +98,25 @@
             <div class="role-cards-container flex justify-center gap-10">
                 <!-- Admin Role -->
                 <div id="adminCard" class="role-card" onclick="setRole('admin')">
-                    <img src="https://via.placeholder.com/60x60?text=Admin" alt="Admin">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l3-3m-3 3l-3-3m6 3l-3 3m0 0l-3-3m3 3v6m-6-6l-3 3m3-3l3-3m-9 6h6m6 0h6M3 12h6" />
+                    </svg>
                     <h3 class="font-semibold">Admin</h3>
                 </div>
 
                 <!-- Manager Role -->
                 <div id="managerCard" class="role-card" onclick="setRole('manager')">
-                    <img src="https://via.placeholder.com/60x60?text=Manager" alt="Manager">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
                     <h3 class="font-semibold">Manager</h3>
                 </div>
 
                 <!-- Chef Role -->
                 <div id="chefCard" class="role-card" onclick="setRole('chef')">
-                    <img src="https://via.placeholder.com/60x60?text=Chef" alt="Chef">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4V2m0 0H5m4 0h4m2 2h4m-4 0v4m4-4l-4 4m-2 4h4m4 0l-4 4m0-4l-4 4" />
+                    </svg>
                     <h3 class="font-semibold">Chef</h3>
                 </div>
             </div>
@@ -207,42 +213,76 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // Role Selection
-        function setRole(role) {
-            // Hide all role sections first
-            document.getElementById("adminSection").classList.remove("active-role");
-            document.getElementById("managerSection").classList.remove("active-role");
-            document.getElementById("chefSection").classList.remove("active-role");
+        document.addEventListener("DOMContentLoaded", function () {
+            const menu = [
+                { id: 1, name: "Pizza", price: 299 },
+                { id: 2, name: "Burger", price: 199 },
+                { id: 3, name: "Pasta", price: 249 },
+                { id: 4, name: "Salad", price: 149 }
+            ];
 
-            if (role === 'admin') {
-                // Admin password check
-                document.getElementById("passwordDialog").style.display = 'flex';
-            } else {
-                document.getElementById(`${role}Section`).classList.add("active-role");
+            let cart = {};
+
+            function loadMenu() {
+                const menuContainer = document.getElementById("menu-items");
+                menuContainer.innerHTML = "";
+                menu.forEach(item => {
+                    const menuItem = document.createElement("div");
+                    menuItem.className = "bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition duration-200 transform hover:-translate-y-1";
+                    menuItem.innerHTML = `
+                        <h3 class="text-lg font-bold mt-2">${item.name}</h3>
+                        <p class="text-gray-600">₹${item.price.toFixed(2)}</p>
+                        <button class="add-to-cart bg-red-600 text-white px-2 py-1 mt-2 rounded text-sm w-full" data-id="${item.id}">➕ Add to Order</button>
+                    `;
+                    menuContainer.appendChild(menuItem);
+                });
+
+                document.querySelectorAll(".add-to-cart").forEach(button => {
+                    button.addEventListener("click", function () {
+                        addToCart(parseInt(this.getAttribute("data-id")));
+                    });
+                });
             }
-        }
 
-        // Admin password check
-        function checkPassword() {
-            const password = document.getElementById("adminPassword").value;
-            if (password === 'admin123') {
+            function addToCart(id) {
+                if (!cart[id]) cart[id] = { ...menu.find(m => m.id === id), quantity: 0 };
+                cart[id].quantity += 1;
+                updateOrder();
+            }
+
+            function updateOrder() {
+                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity}</li>`).join('');
+                document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+            }
+
+            // Show Role-specific Sections
+            function setRole(role) {
+                document.querySelectorAll(".role-section").forEach(section => section.style.display = "none");
+                document.getElementById(`${role}Section`).style.display = "block";
+
+                if (role === 'admin') {
+                    document.getElementById("passwordDialog").style.display = 'flex';
+                }
+            }
+
+            // Admin password check
+            function checkPassword() {
+                const password = document.getElementById("adminPassword").value;
+                if (password === 'admin123') {
+                    document.getElementById("passwordDialog").style.display = 'none';
+                    document.getElementById("adminSection").style.display = 'block';
+                } else {
+                    alert('Incorrect password!');
+                }
+            }
+
+            function closePasswordDialog() {
                 document.getElementById("passwordDialog").style.display = 'none';
-                document.getElementById("adminSection").classList.add("active-role");
-            } else {
-                alert('Incorrect password!');
             }
-        }
 
-        function closePasswordDialog() {
-            document.getElementById("passwordDialog").style.display = 'none';
-        }
-
-        // Load menu and orders (to be implemented based on your logic)
-        function loadMenu() {
-            // Logic for loading menu and orders goes here
-        }
-
-        loadMenu();
+            // Load the Menu
+            loadMenu();
+        });
     </script>
 
 </body>
