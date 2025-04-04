@@ -7,6 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons for Social Media -->
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        /* Sticky "Your Order" section */
+        #your-order {
+            position: sticky;
+            top: 6rem;
+            max-height: 80vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-900">
 
@@ -27,8 +37,8 @@
         </div>
         
         <!-- Your Order Section -->
-        <div id="your-order" class="section mt-6 bg-white shadow-md rounded-lg p-4">
-            <h2 class="text-xl md:text-2xl font-bold">🛒 Your Order</h2>
+        <div id="your-order" class="section mt-6 bg-white shadow-lg rounded-xl p-4 border-2 border-red-500">
+            <h2 class="text-xl md:text-2xl font-extrabold text-red-600 mb-2">🛒 Your Order</h2>
 
             <!-- Table Selection Dropdown -->
             <label for="table-select" class="block font-bold mt-2">Select Your Table:</label>
@@ -40,16 +50,14 @@
                 <option value="Table 4">Table 4</option>
             </select>
 
-            <ul id="order-items" class="mt-4 p-4 rounded-lg shadow bg-gray-50"></ul>
+            <ul id="order-items" class="mt-4 p-4 rounded-lg bg-gray-50 shadow-inner space-y-2 text-sm font-medium text-gray-800"></ul>
             <div class="mt-4 font-bold text-lg">Total: ₹<span id="total-price">0.00</span></div>
             <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
         </div>
 
         <!-- Google Review Link -->
         <div class="text-center mt-6">
-            <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-yellow-500 text-white px-6 py-2 rounded-lg text-lg shadow">
-                ⭐ Leave a Google Review
-            </a>
+            <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
         </div>
 
     </main>
@@ -106,12 +114,12 @@
                 menuContainer.innerHTML = "";
                 menu.forEach(item => {
                     const menuItem = document.createElement("div");
-                    menuItem.className = "bg-white p-4 rounded-lg shadow text-center";
+                    menuItem.className = "bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition duration-200 transform hover:-translate-y-1";
                     menuItem.innerHTML = `
                         <img src="${item.image}" class="w-full h-32 object-cover rounded">
                         <h3 class="text-lg font-bold mt-2">${item.name}</h3>
                         <p class="text-gray-600">₹${item.price.toFixed(2)}</p>
-                        <button class="add-to-cart bg-red-600 text-white px-4 py-2 mt-2 rounded w-full" data-id="${item.id}">➕ Add to Order</button>
+                        <button class="add-to-cart bg-red-600 text-white px-2 py-1 mt-2 rounded text-sm w-full" data-id="${item.id}">➕ Add to Order</button>
                     `;
                     menuContainer.appendChild(menuItem);
                 });
@@ -127,6 +135,14 @@
                 if (!cart[id]) cart[id] = { ...menu.find(m => m.id === id), quantity: 0 };
                 cart[id].quantity += 1;
                 updateOrder();
+
+                // Update button count
+                const button = document.querySelector(`button[data-id="${id}"]`);
+                button.innerText = `➕ ${cart[id].quantity} Selected`;
+                
+                // Button Pulse Animation
+                button.classList.add('animate-pulse');
+                setTimeout(() => button.classList.remove('animate-pulse'), 300);
             }
 
             function updateOrder() {
