@@ -7,35 +7,51 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-        /* Sticky "Your Order" section */
+        /* Sticky "Your Order" section above footer */
         #your-order {
             position: sticky;
-            top: 6rem; /* Distance from top */
+            bottom: 0; /* Fix it above the footer */
+            left: 0;
+            width: 100%;
+            background-color: white;
+            border-top: 2px solid #ef4444;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
             max-height: 80vh;
             overflow-y: auto;
-            scrollbar-width: thin;
-            display: none; /* Initially hidden */
+            transition: all 0.3s ease;
         }
 
-        .order-item {
+        #order-summary {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
         }
 
-        .order-item button {
-            padding: 5px 10px;
-            background-color: #f44;
+        #order-summary p {
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        #view-btn {
+            font-size: 1rem;
+            background-color: #ef4444;
             color: white;
-            border: none;
-            border-radius: 5px;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        .order-item input {
-            width: 40px;
-            text-align: center;
+        #full-order {
+            display: none;
+            margin-top: 10px;
         }
+
+        #your-order.open {
+            max-height: none;
+        }
+
     </style>
 </head>
 <body class="bg-gray-100 text-gray-900">
@@ -46,9 +62,7 @@
             <img src="https://via.placeholder.com/50" alt="Hotel Logo" class="h-10 w-10 rounded-full mr-2">
             <h1 class="text-lg md:text-2xl font-bold">🍽️ My Restaurant</h1>
         </div>
-        <button id="viewOrderBtn" class="bg-blue-500 text-white px-4 py-2 rounded-full w-full text-lg">
-            👀 View Order
-        </button>
+        <button id="trackOrderBtn" class="bg-white text-red-600 px-3 py-1 rounded text-sm md:text-base">📦 Track Order</button>
     </header>
 
     <!-- Main Content -->
@@ -57,11 +71,16 @@
             <h2 class="text-xl md:text-2xl font-bold mb-4">📜 Our Menu</h2>
             <div id="menu-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
         </div>
+    </main>
 
-        <!-- Your Order Section -->
-        <div id="your-order" class="section mt-6 bg-white shadow-lg rounded-xl p-4 border-2 border-red-500">
-            <h2 class="text-xl md:text-2xl font-extrabold text-red-600 mb-2">🛒 Your Order</h2>
+    <!-- Your Order Section -->
+    <div id="your-order" class="section mt-6 bg-white shadow-lg rounded-xl p-4 border-2 border-red-500">
+        <div id="order-summary">
+            <p>🛒 Your Order</p>
+            <button id="view-btn">View</button>
+        </div>
 
+        <div id="full-order">
             <!-- Table Selection Dropdown -->
             <label for="table-select" class="block font-bold mt-2">Select Your Table:</label>
             <select id="table-select" class="w-full p-2 mt-1 border rounded">
@@ -72,35 +91,35 @@
                 <option value="Table 4">Table 4</option>
             </select>
 
-            <!-- Order Items List -->
             <ul id="order-items" class="mt-4 p-4 rounded-lg bg-gray-50 shadow-inner space-y-2 text-sm font-medium text-gray-800"></ul>
             <div class="mt-4 font-bold text-lg">Total: ₹<span id="total-price">0.00</span></div>
             <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
         </div>
+    </div>
 
-        <!-- Google Review Link -->
-        <div class="text-center mt-6">
-            <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
-        </div>
-
-    </main>
+    <!-- Google Review Link -->
+    <div class="text-center mt-6">
+        <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
+    </div>
 
     <!-- Footer Section -->
     <footer class="bg-gray-900 text-white text-center p-6 mt-10">
         <div class="flex justify-center space-x-6 mb-4">
+            <!-- Social Media Icons -->
             <a href="https://facebook.com" target="_blank" class="text-blue-500 text-2xl"><i class="fab fa-facebook"></i></a>
             <a href="https://instagram.com" target="_blank" class="text-pink-500 text-2xl"><i class="fab fa-instagram"></i></a>
             <a href="https://twitter.com" target="_blank" class="text-blue-400 text-2xl"><i class="fab fa-twitter"></i></a>
             <a href="https://wa.me/1234567890" target="_blank" class="text-green-500 text-2xl"><i class="fab fa-whatsapp"></i></a>
         </div>
 
+        <!-- Powered By SRIDA TECHNOLOGIES -->
         <div class="flex justify-center items-center space-x-3">
             <p class="text-sm">Powered by <span class="font-bold">SRIDA TECHNOLOGIES</span></p>
             <img src="https://via.placeholder.com/100x40?text=SRIDA+Logo" alt="SRIDA Logo" class="h-10">
         </div>
     </footer>
 
-    <!-- Firebase -->
+    <!-- Firebase Scripts -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
@@ -157,57 +176,26 @@
 
                 const button = document.querySelector(`button[data-id="${id}"]`);
                 button.innerText = `➕ ${cart[id].quantity} Selected`;
+                
                 button.classList.add('animate-pulse');
                 setTimeout(() => button.classList.remove('animate-pulse'), 300);
             }
 
             function updateOrder() {
-                const orderItemsContainer = document.getElementById("order-items");
-                orderItemsContainer.innerHTML = '';
-
-                let itemName = '';
-                Object.values(cart).forEach(item => {
-                    itemName = item.name; // Storing the last added item name
-                    const orderItem = document.createElement("li");
-                    orderItem.classList.add("order-item");
-                    orderItem.innerHTML = `
-                        <span>${item.name} x${item.quantity}</span>
-                        <div>
-                            <button class="decrease-quantity" data-id="${item.id}">-</button>
-                            <input type="number" value="${item.quantity}" min="1" readonly class="quantity-input">
-                            <button class="increase-quantity" data-id="${item.id}">+</button>
-                        </div>
-                    `;
-                    orderItemsContainer.appendChild(orderItem);
-                });
-
-                // Updating the "View" button to show the last added item name
-                document.getElementById("viewOrderBtn").innerText = `👀 View ${itemName}`;
-
-                // Update total price
-                const totalPrice = Object.values(cart).reduce((sum, item) => sum + (item.price * item.quantity), 0);
-                document.getElementById("total-price").innerText = totalPrice.toFixed(2);
+                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity} - ₹${(item.price * item.quantity).toFixed(2)}</li>`).join('');
+                document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
             }
 
-            function increaseQuantity(id) {
-                cart[id].quantity += 1;
-                updateOrder();
-            }
+            // Toggle View button to show full order details
+            document.getElementById("view-btn").addEventListener("click", () => {
+                const orderSection = document.getElementById("your-order");
+                const fullOrderSection = document.getElementById("full-order");
 
-            function decreaseQuantity(id) {
-                if (cart[id].quantity > 1) {
-                    cart[id].quantity -= 1;
-                    updateOrder();
-                }
-            }
-
-            // Toggling the "Your Order" section visibility
-            document.getElementById("viewOrderBtn").addEventListener("click", () => {
-                const yourOrderSection = document.getElementById("your-order");
-                yourOrderSection.style.display = yourOrderSection.style.display === 'none' ? 'block' : 'none';
+                orderSection.classList.toggle("open");
+                fullOrderSection.style.display = fullOrderSection.style.display === 'none' ? 'block' : 'none';
             });
 
-            // Place Order Functionality
+            // Place order
             document.getElementById("placeOrderBtn").addEventListener("click", async () => {
                 const selectedTable = document.getElementById("table-select").value;
 
@@ -234,6 +222,7 @@
 
                 try {
                     const docRef = await db.collection("orders").add(orderData);
+                    console.log("✅ Order stored successfully:", docRef.id);
                     alert("🎉 Order placed successfully! Order ID: " + docRef.id);
                     cart = {};
                     updateOrder();
