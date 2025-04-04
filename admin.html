@@ -1,9 +1,0 @@
-<button onclick="addMenuItem()">➕ Add Item</button>
-
-<script>
-function addMenuItem() {
-    let name = prompt("Item Name:");
-    let price = prompt("Price:");
-    db.collection("menu").add({ name: name, price: parseInt(price) });
-}
-</script>

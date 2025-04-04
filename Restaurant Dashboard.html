@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Restaurant Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        .role-section {
+            display: none;
+        }
+
+        .active-role {
+            display: block;
+        }
+
+        .tab-button {
+            padding: 10px;
+            margin-right: 10px;
+            background-color: #ef4444;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Style for the Role Icons */
+        .role-card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            background-color: #f3f4f6;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .role-card:hover {
+            background-color: #ef4444;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .role-card img {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 15px;
+        }
+
+        /* For responsiveness */
+        @media (max-width: 768px) {
+            .role-cards-container {
+                flex-direction: column;
+            }
+        }
+
+        /* Admin Password Dialog */
+        .password-dialog {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .password-dialog-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            width: 300px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-900">
+
+    <!-- Navbar -->
+    <header class="bg-red-600 text-white p-4 flex justify-between items-center fixed top-0 w-full z-50">
+        <div class="flex items-center">
+            <img src="https://via.placeholder.com/50" alt="Restaurant Logo" class="h-10 w-10 rounded-full mr-2">
+            <h1 class="text-lg md:text-2xl font-bold">🍽️ Restaurant Dashboard</h1>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="mt-16 p-4 max-w-4xl mx-auto">
+        <div class="text-center mb-6">
+            <h2 class="text-xl md:text-2xl font-bold mb-4">Select Your Role</h2>
+            <div class="role-cards-container flex justify-center gap-10">
+                <!-- Admin Role -->
+                <div id="adminCard" class="role-card" onclick="setRole('admin')">
+                    <img src="https://via.placeholder.com/60x60?text=Admin" alt="Admin">
+                    <h3 class="font-semibold">Admin</h3>
+                </div>
+
+                <!-- Manager Role -->
+                <div id="managerCard" class="role-card" onclick="setRole('manager')">
+                    <img src="https://via.placeholder.com/60x60?text=Manager" alt="Manager">
+                    <h3 class="font-semibold">Manager</h3>
+                </div>
+
+                <!-- Chef Role -->
+                <div id="chefCard" class="role-card" onclick="setRole('chef')">
+                    <img src="https://via.placeholder.com/60x60?text=Chef" alt="Chef">
+                    <h3 class="font-semibold">Chef</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Section -->
+        <div id="adminSection" class="role-section">
+            <h2 class="text-xl font-bold mb-4">Admin - Manage Menu & Settings</h2>
+            <div>
+                <h3 class="text-lg font-semibold">Menu Management</h3>
+                <button class="bg-green-600 text-white px-4 py-2 rounded mb-4" id="addMenuItem">Add New Menu Item</button>
+                <ul id="menuList">
+                    <!-- Menu items will be dynamically added here -->
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold">Settings</h3>
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded">Edit Restaurant Settings</button>
+            </div>
+        </div>
+
+        <!-- Manager Section -->
+        <div id="managerSection" class="role-section">
+            <h2 class="text-xl font-bold mb-4">Manager - Approve Orders / Order Edit</h2>
+            <div>
+                <h3 class="text-lg font-semibold">Pending Orders</h3>
+                <ul id="pendingOrders">
+                    <!-- Pending orders will be dynamically added here -->
+                </ul>
+            </div>
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold">Order Management</h3>
+                <button class="bg-blue-500 text-white px-4 py-2 rounded">Manage Orders</button>
+            </div>
+        </div>
+
+        <!-- Chef Section -->
+        <div id="chefSection" class="role-section">
+            <h2 class="text-xl font-bold mb-4">Chef - Cook & Update Order Status</h2>
+            <div class="mb-4">
+                <h3 class="text-lg font-semibold">Orders to Cook</h3>
+                <ul id="chefOrders">
+                    <!-- Orders to be cooked will be dynamically added here -->
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-semibold">Update Order Status</h3>
+                <button class="bg-red-500 text-white px-4 py-2 rounded">Update Order Status</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Admin Password Dialog -->
+    <div id="passwordDialog" class="password-dialog">
+        <div class="password-dialog-content">
+            <h3 class="text-xl font-bold mb-4">Enter Admin Password</h3>
+            <input type="password" id="adminPassword" class="border p-2 mb-4 w-full" placeholder="Password">
+            <button onclick="checkPassword()" class="bg-red-600 text-white px-4 py-2 rounded">Submit</button>
+            <button onclick="closePasswordDialog()" class="bg-gray-600 text-white px-4 py-2 rounded mt-2">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-white text-center p-6 mt-10">
+        <div class="flex justify-center space-x-6 mb-4">
+            <!-- Social Media Icons -->
+            <a href="https://facebook.com" target="_blank" class="text-blue-500 text-2xl"><i class="fab fa-facebook"></i></a>
+            <a href="https://instagram.com" target="_blank" class="text-pink-500 text-2xl"><i class="fab fa-instagram"></i></a>
+            <a href="https://twitter.com" target="_blank" class="text-blue-400 text-2xl"><i class="fab fa-twitter"></i></a>
+            <a href="https://wa.me/1234567890" target="_blank" class="text-green-500 text-2xl"><i class="fab fa-whatsapp"></i></a>
+        </div>
+
+        <!-- Powered By SRIDA TECHNOLOGIES -->
+        <div class="flex justify-center items-center space-x-3">
+            <p class="text-sm">Powered by <span class="font-bold">SRIDA TECHNOLOGIES</span></p>
+        </div>
+    </footer>
+
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
+            authDomain: "testmenu-4ed51.firebaseapp.com",
+            projectId: "testmenu-4ed51",
+            storageBucket: "testmenu-4ed51.appspot.com",
+            messagingSenderId: "98263305480",
+            appId: "1:98263305480:web:024158941cb5f53225f0bd",
+            measurementId: "G-CX0JDH1RDP"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Role Selection
+        function setRole(role) {
+            // Hide all role sections first
+            document.getElementById("adminSection").classList.remove("active-role");
+            document.getElementById("managerSection").classList.remove("active-role");
+            document.getElementById("chefSection").classList.remove("active-role");
+
+            // Show the selected role section
+            if (role === 'admin') {
+                showAdminPasswordDialog();
+            } else if (role === 'manager') {
+                document.getElementById("managerSection").classList.add("active-role");
+            } else if (role === 'chef') {
+                document.getElementById("chefSection").classList.add("active-role");
+            }
+        }
+
+        // Show Password Dialog for Admin
+        function showAdminPasswordDialog() {
+            document.getElementById('passwordDialog').style.display = 'flex';
+        }
+
+        // Check Admin Password
+        function checkPassword() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === 'admin123') {
+                document.getElementById('passwordDialog').style.display = 'none';
+                document.getElementById("adminSection").classList.add("active-role");
+            } else {
+                alert('Incorrect Password');
+            }
+        }
+
+        // Close Password Dialog
+        function closePasswordDialog() {
+            document.getElementById('passwordDialog').style.display = 'none';
+        }
+
+        // Set default role to Manager on load
+        setRole('manager');
+    </script>
+</body>
+</html>
