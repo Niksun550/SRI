@@ -58,6 +58,18 @@
             margin: 0 5px;
             cursor: pointer;
         }
+
+        .add-to-cart {
+            font-size: 0.875rem; /* smaller button */
+        }
+
+        .quantity-display {
+            display: inline-block;
+            padding: 5px 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin-left: 10px;
+        }
     </style>
 </head>
 
@@ -182,49 +194,36 @@
                 updateOrder();
             }
 
-            // Update cart view
             function updateOrder() {
-                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity}</li>`).join('');
+                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `
+                    <li class="flex justify-between items-center">
+                        ${item.name} x${item.quantity}
+                        <div>
+                            <button class="quantity-btn" data-id="${item.id}" data-action="decrease">-</button>
+                            <span class="quantity-display">${item.quantity}</span>
+                            <button class="quantity-btn" data-id="${item.id}" data-action="increase">+</button>
+                        </div>
+                    </li>`).join('');
                 document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+
+                // Add event listeners for increase/decrease
+                document.querySelectorAll(".quantity-btn").forEach(button => {
+                    button.addEventListener("click", function () {
+                        const id = parseInt(this.getAttribute("data-id"));
+                        const action = this.getAttribute("data-action");
+                        if (action === "increase") {
+                            cart[id].quantity += 1;
+                        } else if (action === "decrease" && cart[id].quantity > 1) {
+                            cart[id].quantity -= 1;
+                        }
+                        updateOrder();
+                    });
+                });
             }
 
-            // Toggle View button to show full order details
-            document.getElementById("view-btn").addEventListener("click", () => {
-                const orderSection = document.getElementById("your-order");
-                const fullOrderSection = document.getElementById("full-order");
-
-                orderSection.classList.toggle("open");
-                fullOrderSection.style.display = fullOrderSection.style.display === 'none' ? 'block' : 'none';
-            });
-
-            // Place order
-            document.getElementById("placeOrderBtn").addEventListener("click", async () => {
-                const selectedTable = document.getElementById("table-select").value;
-
-                if (!selectedTable) {
-                    alert("Please select a table!");
-                    return;
-                }
-
-                if (Object.keys(cart).length === 0) {
-                    alert("Your cart is empty!");
-                    return;
-                }
-
-                let orderData = {
-                    table: selectedTable,
-                    items: Object.values(cart).map(item => ({
-                        name: item.name,
-                        quantity: item.quantity,
-                        price: item.price
-                    })),
-                    total: Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0),
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                };
-
-                // Save order to Firestore
-                await db.collection("orders").add(orderData);
-                alert("Your order has been placed!");
+            // Track Order
+            document.getElementById("trackOrderBtn").addEventListener("click", function () {
+                alert("Tracking order functionality is not yet implemented!");
             });
 
             // Load menu items on page load
