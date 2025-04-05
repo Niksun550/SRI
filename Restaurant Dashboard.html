@@ -3,16 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Restaurant Dashboard</title>
+    <title>Restaurant Dashboard | Table Orders</title>
     <script src="https://cdn.tailwindcss.com/"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
     <style>
-        .role-section {
-            display: none;
+        .card {
+            transition: all 0.3s ease;
         }
-
-        .active-role {
-            display: block;
+        .card:hover {
+            background-color: #ef4444;
+            color: white;
+            transform: scale(1.05);
+        }
+        .card .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: #ddd;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -27,90 +34,86 @@
     </header>
 
     <!-- Main Content -->
-    <main class="mt-16 p-4 max-w-4xl mx-auto">
-        <div class="text-center mb-6">
-            <h2 class="text-xl md:text-2xl font-bold mb-4">Select Your Role</h2>
-            <div class="role-cards-container flex justify-center gap-10">
-                <!-- Admin Role -->
-                <div id="adminCard" class="role-card" onclick="setRole('admin')">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0l3-3m-3 3l-3-3m6 3l-3 3m0 0l-3-3m3 3v6m-6-6l-3 3m3-3l3-3m-9 6h6m6 0h6M3 12h6" />
-                    </svg>
-                    <h3 class="font-semibold">Admin</h3>
-                </div>
+    <main class="mt-16 p-4 max-w-6xl mx-auto">
+        <h2 class="text-2xl font-semibold text-center mb-6">Table Wise Orders</h2>
 
-                <!-- Manager Role -->
-                <div id="managerCard" class="role-card" onclick="setRole('manager')">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                    </svg>
-                    <h3 class="font-semibold">Manager</h3>
-                </div>
-
-                <!-- Chef Role -->
-                <div id="chefCard" class="role-card" onclick="setRole('chef')">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 4V2m0 0H5m4 0h4m2 2h4m-4 0v4m4-4l-4 4m-2 4h4m4 0l-4 4m0-4l-4 4" />
-                    </svg>
-                    <h3 class="font-semibold">Chef</h3>
-                </div>
-            </div>
+        <!-- Table Cards -->
+        <div id="tables-dashboard" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <!-- Table Cards will be dynamically generated here -->
         </div>
-
-        <!-- Admin Section -->
-        <div id="adminSection" class="role-section">
-            <h2 class="text-xl font-bold mb-4">Admin - Manage Menu & Settings</h2>
-            <div>
-                <h3 class="text-lg font-semibold">Menu Management</h3>
-                <button class="bg-green-600 text-white px-4 py-2 rounded mb-4" id="addMenuItem">Add New Menu Item</button>
-                <ul id="menuList">
-                    <!-- Menu items will be dynamically added here -->
-                </ul>
-            </div>
-        </div>
-
-        <!-- Manager Section -->
-        <div id="managerSection" class="role-section">
-            <h2 class="text-xl font-bold mb-4">Manager - Approve Orders / Track Sales</h2>
-            <div>
-                <h3 class="text-lg font-semibold">Pending Orders</h3>
-                <ul id="ordersList">
-                    <!-- Pending orders will be dynamically added -->
-                </ul>
-            </div>
-        </div>
-
-        <!-- Chef Section -->
-        <div id="chefSection" class="role-section">
-            <h2 class="text-xl font-bold mb-4">Chef - Manage Orders</h2>
-            <div>
-                <h3 class="text-lg font-semibold">Pending Orders</h3>
-                <ul id="chefOrdersList">
-                    <!-- Chef's orders -->
-                </ul>
-            </div>
-        </div>
-
     </main>
 
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-white text-center p-6 mt-10">
+        <div class="flex justify-center space-x-6 mb-4">
+            <!-- Social Media Icons -->
+            <a href="https://facebook.com" target="_blank" class="text-blue-500 text-2xl"><i class="fab fa-facebook"></i></a>
+            <a href="https://instagram.com" target="_blank" class="text-pink-500 text-2xl"><i class="fab fa-instagram"></i></a>
+            <a href="https://twitter.com" target="_blank" class="text-blue-400 text-2xl"><i class="fab fa-twitter"></i></a>
+            <a href="https://wa.me/1234567890" target="_blank" class="text-green-500 text-2xl"><i class="fab fa-whatsapp"></i></a>
+        </div>
+
+        <!-- Powered By SRIDA TECHNOLOGIES -->
+        <div class="flex justify-center items-center space-x-3">
+            <p class="text-sm">Powered by <span class="font-bold">SRIDA TECHNOLOGIES</span></p>
+        </div>
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
     <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
+            authDomain: "testmenu-4ed51.firebaseapp.com",
+            projectId: "testmenu-4ed51",
+            storageBucket: "testmenu-4ed51.appspot.com",
+            messagingSenderId: "98263305480",
+            appId: "1:98263305480:web:024158941cb5f53225f0bd",
+            measurementId: "G-CX0JDH1RDP"
+        };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
         document.addEventListener("DOMContentLoaded", function () {
-            // Menu items and logic here
-        });
+            // Function to load table data from Firestore
+            function loadTableData() {
+                db.collection('orders').get().then(snapshot => {
+                    const tablesDashboard = document.getElementById('tables-dashboard');
+                    tablesDashboard.innerHTML = "";  // Clear existing cards
 
-        function setRole(role) {
-            document.getElementById("adminSection").classList.add("role-section");
-            document.getElementById("managerSection").classList.add("role-section");
-            document.getElementById("chefSection").classList.add("role-section");
-
-            if (role === 'admin') {
-                document.getElementById("adminSection").classList.remove("role-section");
-            } else if (role === 'manager') {
-                document.getElementById("managerSection").classList.remove("role-section");
-            } else if (role === 'chef') {
-                document.getElementById("chefSection").classList.remove("role-section");
+                    snapshot.forEach(doc => {
+                        const orderData = doc.data();
+                        const tableCard = document.createElement('div');
+                        tableCard.classList.add('card', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'cursor-pointer');
+                        tableCard.innerHTML = `
+                            <h3 class="font-bold text-lg mb-2">Table ${orderData.table}</h3>
+                            <div class="status ${orderData.status === 'Pending' ? 'bg-yellow-500' : 'bg-green-500'} text-white">
+                                ${orderData.status}
+                            </div>
+                            <p class="mt-2">Items: ${orderData.items.map(item => item.name).join(', ')}</p>
+                            <p class="mt-1 font-bold text-xl">₹${orderData.total}</p>
+                            <button class="bg-blue-500 text-white px-4 py-2 mt-4 rounded" onclick="updateOrderStatus('${doc.id}', '${orderData.status}')">Update Status</button>
+                        `;
+                        tablesDashboard.appendChild(tableCard);
+                    });
+                });
             }
-        }
+
+            // Function to update order status
+            function updateOrderStatus(orderId, currentStatus) {
+                const newStatus = currentStatus === 'Pending' ? 'Confirmed' : 'In Progress'; // Example flow
+                db.collection('orders').doc(orderId).update({
+                    status: newStatus
+                }).then(() => {
+                    alert('Order status updated!');
+                    loadTableData(); // Refresh the table data
+                });
+            }
+
+            loadTableData();  // Initially load table data
+        });
     </script>
 </body>
 </html>
