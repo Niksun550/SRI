@@ -85,6 +85,9 @@
 
                     snapshot.forEach(doc => {
                         const orderData = doc.data();
+                        
+                        // Check if items are available
+                        const items = orderData.items || []; // If items is undefined, use an empty array
                         const tableCard = document.createElement('div');
                         tableCard.classList.add('card', 'bg-white', 'p-4', 'rounded-lg', 'shadow-md', 'cursor-pointer');
                         tableCard.innerHTML = `
@@ -92,23 +95,27 @@
                             <div class="status ${orderData.status === 'Pending' ? 'bg-yellow-500' : 'bg-green-500'} text-white">
                                 ${orderData.status}
                             </div>
-                            <p class="mt-2">Items: ${orderData.items.map(item => item.name).join(', ')}</p>
+                            <p class="mt-2">Items: ${items.length > 0 ? items.map(item => item.name).join(', ') : 'No items ordered'}</p>
                             <p class="mt-1 font-bold text-xl">₹${orderData.total}</p>
                             <button class="bg-blue-500 text-white px-4 py-2 mt-4 rounded" onclick="updateOrderStatus('${doc.id}', '${orderData.status}')">Update Status</button>
                         `;
                         tablesDashboard.appendChild(tableCard);
                     });
+                }).catch(error => {
+                    console.error("Error fetching data: ", error);
                 });
             }
 
             // Function to update order status
-            function updateOrderStatus(orderId, currentStatus) {
+            window.updateOrderStatus = function(orderId, currentStatus) {
                 const newStatus = currentStatus === 'Pending' ? 'Confirmed' : 'In Progress'; // Example flow
                 db.collection('orders').doc(orderId).update({
                     status: newStatus
                 }).then(() => {
                     alert('Order status updated!');
                     loadTableData(); // Refresh the table data
+                }).catch(error => {
+                    console.error("Error updating status: ", error);
                 });
             }
 
