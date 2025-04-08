@@ -91,18 +91,31 @@
   const todayStr = new Date().toISOString().split("T")[0];
   dateFilter.value = todayStr;
 
+  // 🧠 Helper to safely extract ISO date
+  function getSafeISODate(ts) {
+    if (!ts) return null;
+    try {
+      const dateObj = ts.toDate ? ts.toDate() : new Date(ts);
+      return isNaN(dateObj.getTime()) ? null : dateObj.toISOString().split("T")[0];
+    } catch {
+      return null;
+    }
+  }
+
   // Render filtered orders
   function renderOrders(snapshot, selectedStatus, selectedDate) {
     orderTableBody.innerHTML = '';
 
     snapshot.forEach(doc => {
       const order = doc.data();
-      const orderDate = new Date(order.timestamp).toISOString().split("T")[0];
+      const orderDate = getSafeISODate(order.timestamp);
       const status = order.status || "Confirmed";
 
-      if ((selectedStatus !== "All" && status !== selectedStatus) ||
+      // Skip if no valid timestamp or mismatched filter
+      if (!orderDate || 
+          (selectedStatus !== "All" && status !== selectedStatus) ||
           (selectedDate && orderDate !== selectedDate)) {
-        return; // Filtered out
+        return;
       }
 
       const row = document.createElement('tr');
@@ -151,7 +164,7 @@
     });
   }
 
-  // 🔁 Trigger re-render (not fetch) on filter change
+  // 🔁 Trigger re-render on filter change
   function triggerRenderWithFilters() {
     db.collection("orders")
       .orderBy("timestamp", "desc")
@@ -166,7 +179,5 @@
   statusFilter.addEventListener("change", triggerRenderWithFilters);
   dateFilter.addEventListener("change", triggerRenderWithFilters);
 </script>
-
-
 </body>
 </html>
