@@ -1,28 +1,34 @@
-const socket = io(); // 🔌 Connect to backend
-
-const tableBody = document.getElementById('order-table-body');
-
-// Load existing orders on first load
-fetch('/api/orders')
-  .then(res => res.json())
-  .then(data => {
-    data.forEach(renderOrderRow);
+db.collection("orders")
+  .orderBy("timestamp", "desc")
+  .onSnapshot(snapshot => {
+    const orders = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    renderDashboardOrders(orders);
   });
 
-// Listen for real-time new order
-socket.on('newOrder', (order) => {
-  renderOrderRow(order);
-});
+function renderDashboardOrders(orders) {
+  const container = document.getElementById("ordersList");
+  container.innerHTML = "";
 
-// Render a new row in the table
-function renderOrderRow(order) {
-  const tr = document.createElement('tr');
-  tr.innerHTML = `
-    <td>${order.id}</td>
-    <td>${order.name}</td>
-    <td>${order.items.join(', ')}</td>
-    <td>${order.status}</td>
-  `;
-  tableBody.prepend(tr); // Show most recent on top
+  orders.forEach(order => {
+    const card = document.createElement("div");
+    card.style.border = "1px solid #ccc";
+    card.style.padding = "10px";
+    card.style.margin = "10px";
+    card.style.background = "#fff";
+
+    card.innerHTML = `
+      <strong>🪑 Table:</strong> ${order.tableNo}<br>
+      <strong>👤 Name:</strong> ${order.custName}<br>
+      <strong>📞 Mobile:</strong> ${order.mobile}<br>
+      <strong>🕒 Time:</strong> ${new Date(order.timestamp).toLocaleString()}<br>
+      <strong>🧾 Items:</strong>
+      <ul>
+        ${order.items.map(item => `<li>${item.name} x${item.qty} = ₹${item.qty * item.price}</li>`).join("")}
+      </ul>
+      <strong>💵 Total:</strong> ${order.total}
+      <br><strong>📦 Status:</strong> ${order.status}
+    `;
+
+    container.appendChild(card);
+  });
 }
-
