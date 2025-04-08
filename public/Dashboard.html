@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <title>Kitchen Dashboard</title>
   <style>
-    body { font-family: sans-serif; padding: 20px; }
-    h1 { color: #444; }
-    table { width: 100%; border-collapse: collapse; }
+    body { font-family: sans-serif; padding: 20px; background: #fafafa; }
+    h1 { color: #333; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { border: 1px solid #ccc; padding: 10px; }
     th { background-color: #f4f4f4; }
-    td pre { margin: 0; font-size: 0.9rem; }
+    select { padding: 5px; border-radius: 4px; }
+    td pre { margin: 0; font-size: 0.9rem; line-height: 1.4; }
   </style>
 
   <!-- Firebase SDKs -->
@@ -33,7 +34,7 @@
   </table>
 
   <script>
-    // ✅ Firebase config
+    // ✅ Firebase Config
     const firebaseConfig = {
       apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
       authDomain: "testmenu-4ed51.firebaseapp.com",
@@ -48,32 +49,60 @@
 
     const orderTableBody = document.getElementById('order-table-body');
 
-    // 🔁 Live listener
+    const statusOptions = [
+      "Confirmed", 
+      "Preparing", 
+      "Ready to Serve", 
+      "Serve to Table", 
+      "Clear Table"
+    ];
+
+    // 🔁 Real-time listener
     db.collection("orders")
       .orderBy("timestamp", "desc")
       .onSnapshot(snapshot => {
-        orderTableBody.innerHTML = ''; // Clear table
-
+        orderTableBody.innerHTML = '';
         snapshot.forEach(doc => {
           const order = doc.data();
-
           const row = document.createElement('tr');
+
+          const itemsFormatted = order.items.map(item =>
+            `${item.name} x${item.qty} = ₹${item.qty * item.price}`).join('\n');
+
+          const currentStatus = order.status || "Confirmed";
+
+          const statusDropdown = `
+            <select onchange="updateStatus('${doc.id}', this.value)">
+              ${statusOptions.map(opt => `
+                <option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>
+              `).join('')}
+            </select>`;
+
           row.innerHTML = `
             <td>${doc.id}</td>
             <td>
-              <strong>${order.custName}</strong><br/>
-              📱 ${order.mobile}<br/>
+              <strong>${order.custName}</strong><br>
+              📱 ${order.mobile}<br>
               🪑 Table: ${order.tableNo}
             </td>
-            <td>
-              <pre>${order.items.map(item =>
-                `${item.name} x${item.qty} = ₹${item.qty * item.price}`).join('\n')}</pre>
-            </td>
-            <td>${order.status || 'new'}</td>
+            <td><pre>${itemsFormatted}</pre></td>
+            <td>${statusDropdown}</td>
           `;
           orderTableBody.appendChild(row);
         });
       });
+
+    // 🔁 Status updater
+    function updateStatus(orderId, newStatus) {
+      db.collection("orders").doc(orderId).update({
+        status: newStatus
+      }).then(() => {
+        console.log(`✅ Status updated to ${newStatus} for ${orderId}`);
+      }).catch(err => {
+        console.error("❌ Failed to update status", err);
+        alert("❌ Could not update status");
+      });
+    }
   </script>
 
 </body>
