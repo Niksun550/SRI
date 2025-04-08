@@ -50,26 +50,20 @@
     }
 
     #cartSidebar {
-      position: fixed;
+      position: sticky;
       bottom: 0;
-      left: 0;
-      right: 0;
+      margin-top: 20px;
       background: #ffffff;
       border-top: 2px solid #ddd;
       padding: 15px;
       box-shadow: 0 -2px 5px rgba(0,0,0,0.15);
       z-index: 999;
-      transition: transform 0.3s ease-in-out;
-    }
-
-    #cartSidebar.collapsed {
-      transform: translateY(100%);
     }
 
     #cartHeader {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      font-weight: bold;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
     }
 
     #cartItems {
@@ -156,11 +150,10 @@
     </div>
   </div>
 
-  <!-- Sticky Cart Sidebar -->
+  <!-- Sticky Cart Section -->
   <div id="cartSidebar">
     <div id="cartHeader">
-      <strong>🛒 Your Cart</strong>
-      <button onclick="toggleCart()">🔽</button>
+      🛒 View Cart
     </div>
     <div id="cartItems"></div>
     <div id="orderTotal">Total: ₹0</div>
@@ -264,10 +257,6 @@
       document.getElementById('tableNo').value = '';
       document.getElementById('custName').value = '';
       document.getElementById('mobile').value = '';
-    }
-
-    function toggleCart() {
-      document.getElementById('cartSidebar').classList.toggle('collapsed');
     }
 
     function persistCart() {
