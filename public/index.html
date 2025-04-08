@@ -181,6 +181,8 @@
   </div>
   <button id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
 </div>
+<!-- ✅ Your HTML remains same up to here -->
+
 <!-- Firebase SDKs (Firestore) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
@@ -253,45 +255,46 @@
   }
 
   async function placeOrder() {
-  const tableNo = document.getElementById('tableNo').value;
-  const custName = document.getElementById('custName').value.trim();
-  const mobile = document.getElementById('mobile').value.trim();
+    const tableNo = document.getElementById('tableNo').value;
+    const custName = document.getElementById('custName').value.trim();
+    const mobile = document.getElementById('mobile').value.trim();
 
-  if (!tableNo || !custName || !mobile) {
-    showToast("⚠️ Please fill all fields");
-    return;
+    if (!tableNo || !custName || !mobile) {
+      showToast("⚠️ Please fill all fields");
+      return;
+    }
+
+    if (Object.keys(cart).length === 0) {
+      showToast("🛒 Cart is empty");
+      return;
+    }
+
+    const items = Object.entries(cart).map(([name, data]) => ({
+      name,
+      qty: data.quantity,
+      price: data.price
+    }));
+
+    const order = {
+      tableNo,
+      custName,
+      mobile,
+      items,
+      total: totalEl.innerText,
+      timestamp: new Date().toISOString(),
+      status: "new"
+    };
+
+    try {
+      await db.collection("orders").add(order);
+      showToast("✅ Order placed!");
+      resetCart();
+    } catch (err) {
+      console.error("🔥 Firestore Error:", err);
+      showToast("❌ Failed to place order");
+    }
   }
 
-  if (Object.keys(cart).length === 0) {
-    showToast("🛒 Cart is empty");
-    return;
-  }
-
-  const items = Object.entries(cart).map(([name, data]) => ({
-    name,
-    qty: data.quantity,
-    price: data.price
-  }));
-
-  const order = {
-    tableNo,
-    custName,
-    mobile,
-    items,
-    total: totalEl.innerText,
-    timestamp: new Date().toISOString(),
-    status: "new"
-  };
-
-  try {
-    await db.collection("orders").add(order);
-    showToast("✅ Order placed!");
-    resetCart();
-  } catch (err) {
-    console.error("🔥 Firestore Error:", err);
-    showToast("❌ Failed to place order");
-  }
-}
   function resetCart() {
     for (const key in cart) delete cart[key];
     persistCart();
@@ -317,34 +320,34 @@
     }, 3000);
   }
 
-  function trackMyOrder() {
+  // ✅ Firestore-based Tracking (Fix)
+  async function trackMyOrder() {
     const mobile = prompt("📱 Enter your mobile number to track your order:");
-    if (!mobile) {
-      showToast("⚠️ Mobile number required!");
-      return;
+    if (!mobile) return showToast("⚠️ Mobile number required!");
+
+    try {
+      const snapshot = await db.collection("orders").where("mobile", "==", mobile).get();
+
+      if (snapshot.empty) return showToast("❌ No orders found");
+
+      let msg = "📋 Your Orders:\n";
+      let count = 1;
+
+      snapshot.forEach(doc => {
+        const order = doc.data();
+        msg += `\n🔹 Order ${count++} (Table: ${order.tableNo})\n`;
+        order.items.forEach(item => {
+          msg += `   • ${item.name} x${item.qty} = ₹${item.qty * item.price}\n`;
+        });
+        msg += `   Total: ${order.total}\n🕒 ${new Date(order.timestamp).toLocaleString()}\n`;
+      });
+
+      alert(msg);
+    } catch (err) {
+      console.error("📦 Order fetch error:", err);
+      showToast("❌ Error fetching orders");
     }
-
-    const orders = JSON.parse(localStorage.getItem('orders')) || [];
-    const foundOrders = orders.filter(order => order.mobile === mobile);
-
-    if (foundOrders.length === 0) {
-      showToast("❌ No orders found for this number.");
-      return;
-    }
-
-    let msg = "📋 Your Orders:\n";
-    foundOrders.forEach((order, index) => {
-      msg += `\n🔹 Order ${index + 1} (Table: ${order.tableNo})\n`;
-      for (const item in order.items) {
-        const { quantity, price } = order.items[item];
-        msg += `   • ${item} x${quantity} = ₹${quantity * price}\n`;
-      }
-      msg += `   Total: ${order.total}\n🕒 ${new Date(order.timestamp).toLocaleString()}\n`;
-    });
-
-    alert(msg);
   }
 </script>
-
 </body>
 </html>
