@@ -10,6 +10,7 @@ const firebaseConfig = {
   measurementId: "G-CX0JDH1RDP"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+firebase.initializeApp(firebaseConfig);
+
+// 👇 Attach the database object globally if needed
+const database = firebase.database();
