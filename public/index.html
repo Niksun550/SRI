@@ -259,15 +259,8 @@
     const custName = document.getElementById('custName').value.trim();
     const mobile = document.getElementById('mobile').value.trim();
 
-    if (!tableNo || !custName || !mobile) {
-      showToast("⚠️ Please fill all fields");
-      return;
-    }
-
-    if (Object.keys(cart).length === 0) {
-      showToast("🛒 Cart is empty");
-      return;
-    }
+    if (!tableNo || !custName || !mobile) return showToast("⚠️ Please fill all fields");
+    if (Object.keys(cart).length === 0) return showToast("🛒 Cart is empty");
 
     const items = Object.entries(cart).map(([name, data]) => ({
       name,
@@ -320,75 +313,31 @@
     }, 3000);
   }
 
-  // ✅ Firestore-based Tracking (Fix)
-  async function trackMyOrder() {
+  function trackMyOrder() {
     const mobile = prompt("📱 Enter your mobile number to track your order:");
     if (!mobile) return showToast("⚠️ Mobile number required!");
 
-    try {
-      const snapshot = await db.collection("orders").where("mobile", "==", mobile).get();
+    db.collection("orders")
+      .where("mobile", "==", mobile)
+      .orderBy("timestamp", "desc")
+      .limit(3)
+      .onSnapshot(snapshot => {
+        if (snapshot.empty) return showToast("❌ No orders found.");
 
-      if (snapshot.empty) return showToast("❌ No orders found");
-
-      let msg = "📋 Your Orders:\n";
-      let count = 1;
-
-      snapshot.forEach(doc => {
-        const order = doc.data();
-        msg += `\n🔹 Order ${count++} (Table: ${order.tableNo})\n`;
-        order.items.forEach(item => {
-          msg += `   • ${item.name} x${item.qty} = ₹${item.qty * item.price}\n`;
-        });
-        msg += `   Total: ${order.total}\n🕒 ${new Date(order.timestamp).toLocaleString()}\n`;
-      });
-
-      alert(msg);
-    } catch (err) {
-      console.error("📦 Order fetch error:", err);
-      showToast("❌ Error fetching orders");
-    }
-  }
-  <!-- Add to bottom of index.html -->
-<script>
-  async function trackMyOrder() {
-    const mobile = prompt("📱 Enter your mobile number to track your order:");
-    if (!mobile) {
-      showToast("⚠️ Mobile number required!");
-      return;
-    }
-
-    try {
-      const ordersRef = firebase.firestore().collection("orders");
-      const query = ordersRef.where("mobile", "==", mobile).orderBy("timestamp", "desc").limit(1);
-
-      query.onSnapshot(snapshot => {
-        if (snapshot.empty) {
-          showToast("❌ No orders found for this number.");
-          return;
-        }
-
-        let msg = "📋 Your Latest Order:\n";
+        let msg = "📋 Latest Orders:\n";
         snapshot.forEach(doc => {
           const order = doc.data();
-          msg += `\n🪑 Table: ${order.tableNo}\n👤 Name: ${order.custName}\n📞 Mobile: ${order.mobile}\n\n`;
-
+          msg += `\n🪑 Table: ${order.tableNo}\nStatus: ${order.status || 'Pending'}\n`;
           order.items.forEach(item => {
             msg += `• ${item.name} x${item.qty} = ₹${item.qty * item.price}\n`;
           });
-
-          msg += `\n🧾 Total: ${order.total}`;
-          msg += `\n📌 Status: ${order.status || 'Pending'}\n🕒 ${new Date(order.timestamp).toLocaleString()}`;
+          msg += `Total: ${order.total}\n🕒 ${new Date(order.timestamp).toLocaleString()}\n`;
         });
 
         alert(msg);
       });
-
-    } catch (err) {
-      console.error("❌ Error fetching order", err);
-      showToast("❌ Something went wrong");
-    }
   }
 </script>
-</script>
+
 </body>
 </html>
