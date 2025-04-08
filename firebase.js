@@ -10,7 +10,6 @@ const firebaseConfig = {
   appId: "1:98263305480:web:024158941cb5f53225f0bd",
   measurementId: "G-CX0JDH1RDP"
 };
-
 firebase.initializeApp(firebaseConfig);
 
 // 👇 Attach the database object globally if needed
