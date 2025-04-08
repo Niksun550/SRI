@@ -7,19 +7,60 @@
     body { font-family: sans-serif; padding: 20px; background: #fafafa; }
     h1 { color: #333; }
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ccc; padding: 10px; }
+    th, td { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
     th { background-color: #f4f4f4; }
-    select { padding: 5px; border-radius: 4px; }
+    select, input[type="date"] {
+      padding: 6px;
+      margin-left: 10px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
     td pre { margin: 0; font-size: 0.9rem; line-height: 1.4; }
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
   </style>
 
-  <!-- Firebase SDKs -->
+  <!-- ✅ Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <script>
+    // ✅ Initialize Firebase
+    const firebaseConfig = {
+      apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
+      authDomain: "testmenu-4ed51.firebaseapp.com",
+      projectId: "testmenu-4ed51",
+      storageBucket: "testmenu-4ed51.appspot.com",
+      messagingSenderId: "98263305480",
+      appId: "1:98263305480:web:024158941cb5f53225f0bd"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+  </script>
 </head>
+
 <body>
 
   <h1>🔥 Live Kitchen Dashboard</h1>
+
+  <div class="filter-bar">
+    <label for="statusFilter">Filter by status:</label>
+    <select id="statusFilter">
+      <option value="All">All</option>
+      <option value="Confirmed">Confirmed</option>
+      <option value="Preparing">Preparing</option>
+      <option value="Ready to Serve">Ready to Serve</option>
+      <option value="Serve to Table">Serve to Table</option>
+      <option value="Clear Table">Clear Table</option>
+    </select>
+
+    <label for="dateFilter">Today's Orders:</label>
+    <input type="date" id="dateFilter" />
+  </div>
 
   <table>
     <thead>
@@ -34,75 +75,95 @@
   </table>
 
   <script>
-    // ✅ Firebase Config
-    const firebaseConfig = {
-      apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
-      authDomain: "testmenu-4ed51.firebaseapp.com",
-      projectId: "testmenu-4ed51",
-      storageBucket: "testmenu-4ed51.appspot.com",
-      messagingSenderId: "98263305480",
-      appId: "1:98263305480:web:024158941cb5f53225f0bd"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-
     const orderTableBody = document.getElementById('order-table-body');
+    const statusFilter = document.getElementById('statusFilter');
+    const dateFilter = document.getElementById('dateFilter');
 
     const statusOptions = [
-      "Confirmed", 
-      "Preparing", 
-      "Ready to Serve", 
-      "Serve to Table", 
+      "Confirmed",
+      "Preparing",
+      "Ready to Serve",
+      "Serve to Table",
       "Clear Table"
     ];
 
-    // 🔁 Real-time listener
+    // Set default date to today
+    const todayStr = new Date().toISOString().split("T")[0];
+    dateFilter.value = todayStr;
+
+    function renderOrders(snapshot) {
+      orderTableBody.innerHTML = '';
+
+      snapshot.forEach(doc => {
+        const order = doc.data();
+        const orderDate = new Date(order.timestamp).toISOString().split("T")[0];
+        const selectedStatus = statusFilter.value;
+        const selectedDate = dateFilter.value;
+
+        if ((selectedStatus !== "All" && order.status !== selectedStatus) ||
+            (selectedDate && orderDate !== selectedDate)) {
+          return; // skip non-matching orders
+        }
+
+        const row = document.createElement('tr');
+        const itemsFormatted = order.items.map(item =>
+          `${item.name} x${item.qty} = ₹${item.qty * item.price}`).join('\n');
+
+        const currentStatus = order.status || "Confirmed";
+        const statusDropdown = `
+          <select onchange="updateStatus('${doc.id}', this.value)">
+            ${statusOptions.map(opt => `
+              <option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>
+            `).join('')}
+          </select>`;
+
+        row.innerHTML = `
+          <td>${doc.id}</td>
+          <td>
+            <strong>${order.custName}</strong><br>
+            📱 ${order.mobile}<br>
+            🪑 Table: ${order.tableNo}
+          </td>
+          <td><pre>${itemsFormatted}</pre></td>
+          <td>${statusDropdown}</td>
+        `;
+        orderTableBody.appendChild(row);
+      });
+    }
+
+    // 🔁 Realtime Firestore Listener
     db.collection("orders")
       .orderBy("timestamp", "desc")
       .onSnapshot(snapshot => {
-        orderTableBody.innerHTML = '';
-        snapshot.forEach(doc => {
-          const order = doc.data();
-          const row = document.createElement('tr');
-
-          const itemsFormatted = order.items.map(item =>
-            `${item.name} x${item.qty} = ₹${item.qty * item.price}`).join('\n');
-
-          const currentStatus = order.status || "Confirmed";
-
-          const statusDropdown = `
-            <select onchange="updateStatus('${doc.id}', this.value)">
-              ${statusOptions.map(opt => `
-                <option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>
-              `).join('')}
-            </select>`;
-
-          row.innerHTML = `
-            <td>${doc.id}</td>
-            <td>
-              <strong>${order.custName}</strong><br>
-              📱 ${order.mobile}<br>
-              🪑 Table: ${order.tableNo}
-            </td>
-            <td><pre>${itemsFormatted}</pre></td>
-            <td>${statusDropdown}</td>
-          `;
-          orderTableBody.appendChild(row);
-        });
+        renderOrders(snapshot);
       });
 
-    // 🔁 Status updater
+    // 🔁 Update order status
     function updateStatus(orderId, newStatus) {
       db.collection("orders").doc(orderId).update({
         status: newStatus
       }).then(() => {
-        console.log(`✅ Status updated to ${newStatus} for ${orderId}`);
+        console.log(`✅ Updated: ${orderId} -> ${newStatus}`);
       }).catch(err => {
-        console.error("❌ Failed to update status", err);
+        console.error("❌ Status update failed", err);
         alert("❌ Could not update status");
       });
     }
+
+    // 🔁 Refetch on filter change
+    statusFilter.addEventListener("change", () => {
+      db.collection("orders")
+        .orderBy("timestamp", "desc")
+        .get()
+        .then(renderOrders);
+    });
+
+    dateFilter.addEventListener("change", () => {
+      db.collection("orders")
+        .orderBy("timestamp", "desc")
+        .get()
+        .then(renderOrders);
+    });
   </script>
 
 </body>
