@@ -1,136 +1,240 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Restaurant | Order Online</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-  <style>
-    #your-order {
-      position: sticky;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      background-color: white;
-      border-top: 2px solid #ef4444;
-      padding: 10px;
-      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      max-height: 80vh;
-      overflow-y: auto;
-      transition: all 0.3s ease;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Restaurant | Order Online</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+    <style>
+        /* Sticky "Your Order" section above footer */
+        #your-order {
+            position: sticky;
+            bottom: 0; /* Fix it above the footer */
+            left: 0;
+            width: 100%;
+            background-color: white;
+            border-top: 2px solid #ef4444;
+            padding: 10px;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            max-height: 80vh;
+            overflow-y: auto;
+            transition: all 0.3s ease;
+        }
 
-    #order-summary {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
+        #order-summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    #order-summary p {
-      font-weight: bold;
-      font-size: 1rem;
-    }
+        #order-summary p {
+            font-weight: bold;
+            font-size: 1rem;
+        }
 
-    #view-btn {
-      font-size: 1rem;
-      background-color: #ef4444;
-      color: white;
-      padding: 8px 12px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
+        #view-btn {
+            font-size: 1rem;
+            background-color: #ef4444;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-    #full-order {
-      display: none;
-      margin-top: 10px;
-    }
+        #full-order {
+            display: none;
+            margin-top: 10px;
+        }
 
-    #your-order.open {
-      max-height: none;
-    }
-  </style>
+        #your-order.open {
+            max-height: none;
+        }
+
+    </style>
 </head>
 <body class="bg-gray-100 text-gray-900">
 
-  <!-- Navbar -->
-  <header class="bg-red-600 text-white p-4 flex justify-between items-center fixed top-0 w-full z-50">
-    <div class="flex items-center">
-      <img src="https://via.placeholder.com/50" alt="Hotel Logo" class="h-10 w-10 rounded-full mr-2" />
-      <h1 class="text-lg md:text-2xl font-bold">🍽️ My Restaurant</h1>
+    <!-- Navbar -->
+    <header class="bg-red-600 text-white p-4 flex justify-between items-center fixed top-0 w-full z-50">
+        <div class="flex items-center">
+            <img src="https://via.placeholder.com/50" alt="Hotel Logo" class="h-10 w-10 rounded-full mr-2">
+            <h1 class="text-lg md:text-2xl font-bold">🍽️ My Restaurant</h1>
+        </div>
+        <button id="trackOrderBtn" class="bg-white text-red-600 px-3 py-1 rounded text-sm md:text-base">📦 Track Order</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="mt-16 p-4 max-w-4xl mx-auto">
+        <div id="menu" class="section">
+            <h2 class="text-xl md:text-2xl font-bold mb-4">📜 Our Menu</h2>
+            <div id="menu-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
+        </div>
+    </main>
+
+    <!-- Your Order Section -->
+    <div id="your-order" class="section mt-6 bg-white shadow-lg rounded-xl p-4 border-2 border-red-500">
+        <div id="order-summary">
+            <p>🛒 Your Order</p>
+            <button id="view-btn">View</button>
+        </div>
+
+        <div id="full-order">
+            <!-- Table Selection Dropdown -->
+            <label for="table-select" class="block font-bold mt-2">Select Your Table:</label>
+            <select id="table-select" class="w-full p-2 mt-1 border rounded">
+                <option value="">-- Choose a Table --</option>
+                <option value="Table 1">Table 1</option>
+                <option value="Table 2">Table 2</option>
+                <option value="Table 3">Table 3</option>
+                <option value="Table 4">Table 4</option>
+            </select>
+
+            <ul id="order-items" class="mt-4 p-4 rounded-lg bg-gray-50 shadow-inner space-y-2 text-sm font-medium text-gray-800"></ul>
+            <div class="mt-4 font-bold text-lg">Total: ₹<span id="total-price">0.00</span></div>
+            <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
+        </div>
     </div>
-    <button id="trackOrderBtn" class="bg-white text-red-600 px-3 py-1 rounded text-sm md:text-base">📦 Track Order</button>
-  </header>
 
-  <!-- Main Content -->
-  <main class="mt-16 p-4 max-w-4xl mx-auto">
-    <div id="menu" class="section">
-      <h2 class="text-xl md:text-2xl font-bold mb-4">📜 Our Menu</h2>
-      <div id="menu-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"></div>
-    </div>
-  </main>
-
-  <!-- Your Order Section -->
-  <div id="your-order" class="section mt-6 bg-white shadow-lg rounded-xl p-4 border-2 border-red-500">
-    <div id="order-summary">
-      <p>🛒 Your Order</p>
-      <button id="view-btn">View</button>
+    <!-- Google Review Link -->
+    <div class="text-center mt-6">
+        <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
     </div>
 
-    <div id="full-order">
-      <!-- 📋 Table Selection Dropdown -->
-      <label for="table-select" class="block font-bold mt-2">📋 Select Your Table:</label>
-      <select id="table-select" class="w-full p-2 mt-1 border rounded">
-        <option value="">-- Choose a Table --</option>
-        <option value="Table 1">Table 1</option>
-        <option value="Table 2">Table 2</option>
-        <option value="Table 3">Table 3</option>
-        <option value="Table 4">Table 4</option>
-      </select>
+    <!-- Footer Section -->
+    <footer class="bg-gray-900 text-white text-center p-6 mt-10">
+        <div class="flex justify-center space-x-6 mb-4">
+            <!-- Social Media Icons -->
+            <a href="https://facebook.com" target="_blank" class="text-blue-500 text-2xl"><i class="fab fa-facebook"></i></a>
+            <a href="https://instagram.com" target="_blank" class="text-pink-500 text-2xl"><i class="fab fa-instagram"></i></a>
+            <a href="https://twitter.com" target="_blank" class="text-blue-400 text-2xl"><i class="fab fa-twitter"></i></a>
+            <a href="https://wa.me/1234567890" target="_blank" class="text-green-500 text-2xl"><i class="fab fa-whatsapp"></i></a>
+        </div>
 
-      <!-- 👤 Customer Name Input -->
-      <label for="customer-name" class="block font-bold mt-4">👤 Customer Name:</label>
-      <input id="customer-name" type="text" class="w-full p-2 mt-1 border rounded" placeholder="Enter your name" />
+        <!-- Powered By SRIDA TECHNOLOGIES -->
+        <div class="flex justify-center items-center space-x-3">
+            <p class="text-sm">Powered by <span class="font-bold">SRIDA TECHNOLOGIES</span></p>
+    
+        </div>
+    </footer>
 
-      <!-- 📱 Mobile Number Input -->
-      <label for="mobile-number" class="block font-bold mt-4">📱 Mobile Number:</label>
-      <input id="mobile-number" type="tel" class="w-full p-2 mt-1 border rounded" placeholder="Enter your mobile number" />
+    <!-- Firebase Scripts -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
 
-      <!-- 🛒 Order Items List -->
-      <ul id="order-items" class="mt-4 p-4 rounded-lg bg-gray-50 shadow-inner space-y-2 text-sm font-medium text-gray-800"></ul>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
+            authDomain: "testmenu-4ed51.firebaseapp.com",
+            projectId: "testmenu-4ed51",
+            storageBucket: "testmenu-4ed51.appspot.com",
+            messagingSenderId: "98263305480",
+            appId: "1:98263305480:web:024158941cb5f53225f0bd",
+            measurementId: "G-CX0JDH1RDP"
+        };
 
-      <!-- 💰 Total Price -->
-      <div class="mt-4 font-bold text-lg">💰 Total: ₹<span id="total-price">0.00</span></div>
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
 
-      <!-- ✅ Place Order Button -->
-      <button id="placeOrderBtn" class="bg-green-600 text-white px-4 py-2 mt-3 rounded w-full text-lg">✅ Place Order</button>
-    </div>
-  </div>
+        document.addEventListener("DOMContentLoaded", function () {
+            const menu = [
+                { id: 1, name: "Pizza", price: 299, image: "https://via.placeholder.com/150" },
+                { id: 2, name: "Burger", price: 199, image: "https://via.placeholder.com/150" },
+                { id: 3, name: "Pasta", price: 249, image: "https://via.placeholder.com/150" },
+                { id: 4, name: "Salad", price: 149, image: "https://via.placeholder.com/150" }
+            ];
 
-  <!-- Google Review Link -->
-  <div class="text-center mt-6">
-    <a href="https://g.page/r/CdX8U3RAPnN6EAE" target="_blank" class="bg-gradient-to-r from-yellow-400 to-orange-500 text-white px-6 py-2 rounded-full text-lg shadow hover:scale-105 transition">⭐ Leave a Google Review</a>
-  </div>
+            let cart = {};
 
-  <!-- Footer Section -->
-  <footer class="bg-gray-900 text-white text-center p-6 mt-10">
-    <div class="flex justify-center space-x-6 mb-4">
-      <a href="https://facebook.com" target="_blank" class="text-blue-500 text-2xl"><i class="fab fa-facebook"></i></a>
-      <a href="https://instagram.com" target="_blank" class="text-pink-500 text-2xl"><i class="fab fa-instagram"></i></a>
-      <a href="https://twitter.com" target="_blank" class="text-blue-400 text-2xl"><i class="fab fa-twitter"></i></a>
-      <a href="https://wa.me/1234567890" target="_blank" class="text-green-500 text-2xl"><i class="fab fa-whatsapp"></i></a>
-    </div>
-    <div class="flex justify-center items-center space-x-3">
-      <p class="text-sm">Powered by <span class="font-bold">SRIDA TECHNOLOGIES</span></p>
-    </div>
-  </footer>
+            function loadMenu() {
+                const menuContainer = document.getElementById("menu-items");
+                menuContainer.innerHTML = "";
+                menu.forEach(item => {
+                    const menuItem = document.createElement("div");
+                    menuItem.className = "bg-white p-4 rounded-xl shadow-md hover:shadow-xl transition duration-200 transform hover:-translate-y-1";
+                    menuItem.innerHTML = `
+                        <img src="${item.image}" class="w-full h-32 object-cover rounded">
+                        <h3 class="text-lg font-bold mt-2">${item.name}</h3>
+                        <p class="text-gray-600">₹${item.price.toFixed(2)}</p>
+                        <button class="add-to-cart bg-red-600 text-white px-2 py-1 mt-2 rounded text-sm w-full" data-id="${item.id}">➕ Add to Order</button>
+                    `;
+                    menuContainer.appendChild(menuItem);
+                });
 
-  <!-- Firebase Scripts -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+                document.querySelectorAll(".add-to-cart").forEach(button => {
+                    button.addEventListener("click", function () {
+                        addToCart(parseInt(this.getAttribute("data-id")));
+                    });
+                });
+            }
 
-  <!-- Your existing Firebase & App logic continues below -->
-  <!-- ⚠️ Make sure to attach listeners to new inputs if needed in the JS -->
+            function addToCart(id) {
+                if (!cart[id]) cart[id] = { ...menu.find(m => m.id === id), quantity: 0 };
+                cart[id].quantity += 1;
+                updateOrder();
+
+                const button = document.querySelector(`button[data-id="${id}"]`);
+                button.innerText = `➕ ${cart[id].quantity} Selected`;
+                
+                button.classList.add('animate-pulse');
+                setTimeout(() => button.classList.remove('animate-pulse'), 300);
+            }
+
+            function updateOrder() {
+                document.getElementById("order-items").innerHTML = Object.values(cart).map(item => `<li>${item.name} x${item.quantity} - ₹${(item.price * item.quantity).toFixed(2)}</li>`).join('');
+                document.getElementById("total-price").innerText = Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0).toFixed(2);
+            }
+
+            // Toggle View button to show full order details
+            document.getElementById("view-btn").addEventListener("click", () => {
+                const orderSection = document.getElementById("your-order");
+                const fullOrderSection = document.getElementById("full-order");
+
+                orderSection.classList.toggle("open");
+                fullOrderSection.style.display = fullOrderSection.style.display === 'none' ? 'block' : 'none';
+            });
+
+            // Place order
+            document.getElementById("placeOrderBtn").addEventListener("click", async () => {
+                const selectedTable = document.getElementById("table-select").value;
+
+                if (!selectedTable) {
+                    alert("Please select a table!");
+                    return;
+                }
+
+                if (Object.keys(cart).length === 0) {
+                    alert("Your cart is empty!");
+                    return;
+                }
+
+                let orderData = {
+                    table: selectedTable,
+                    items: Object.values(cart).map(item => ({
+                        name: item.name,
+                        quantity: item.quantity,
+                        price: item.price
+                    })),
+                    total: Object.values(cart).reduce((sum, item) => sum + item.price * item.quantity, 0),
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                try {
+                    const docRef = await db.collection("orders").add(orderData);
+                    console.log("✅ Order stored successfully:", docRef.id);
+                    alert("🎉 Order placed successfully! Order ID: " + docRef.id);
+                    cart = {};
+                    updateOrder();
+                } catch (error) {
+                    console.error("❌ Error storing order:", error);
+                    alert("🚨 Error placing order! Check console for details.");
+                }
+            });
+
+            loadMenu();
+        });
+    </script>
+
 </body>
 </html>
