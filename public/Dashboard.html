@@ -74,97 +74,99 @@
     <tbody id="order-table-body"></tbody>
   </table>
 
-  <script>
-    const orderTableBody = document.getElementById('order-table-body');
-    const statusFilter = document.getElementById('statusFilter');
-    const dateFilter = document.getElementById('dateFilter');
+<script>
+  const orderTableBody = document.getElementById('order-table-body');
+  const statusFilter = document.getElementById('statusFilter');
+  const dateFilter = document.getElementById('dateFilter');
 
-    const statusOptions = [
-      "Confirmed",
-      "Preparing",
-      "Ready to Serve",
-      "Serve to Table",
-      "Clear Table"
-    ];
+  const statusOptions = [
+    "Confirmed",
+    "Preparing",
+    "Ready to Serve",
+    "Serve to Table",
+    "Clear Table"
+  ];
 
-    // Set default date to today
-    const todayStr = new Date().toISOString().split("T")[0];
-    dateFilter.value = todayStr;
+  // Set default date to today
+  const todayStr = new Date().toISOString().split("T")[0];
+  dateFilter.value = todayStr;
 
-    function renderOrders(snapshot) {
-      orderTableBody.innerHTML = '';
+  // Render filtered orders
+  function renderOrders(snapshot, selectedStatus, selectedDate) {
+    orderTableBody.innerHTML = '';
 
-      snapshot.forEach(doc => {
-        const order = doc.data();
-        const orderDate = new Date(order.timestamp).toISOString().split("T")[0];
-        const selectedStatus = statusFilter.value;
-        const selectedDate = dateFilter.value;
+    snapshot.forEach(doc => {
+      const order = doc.data();
+      const orderDate = new Date(order.timestamp).toISOString().split("T")[0];
+      const status = order.status || "Confirmed";
 
-        if ((selectedStatus !== "All" && order.status !== selectedStatus) ||
-            (selectedDate && orderDate !== selectedDate)) {
-          return; // skip non-matching orders
-        }
+      if ((selectedStatus !== "All" && status !== selectedStatus) ||
+          (selectedDate && orderDate !== selectedDate)) {
+        return; // Filtered out
+      }
 
-        const row = document.createElement('tr');
-        const itemsFormatted = order.items.map(item =>
-          `${item.name} x${item.qty} = ₹${item.qty * item.price}`).join('\n');
+      const row = document.createElement('tr');
+      const itemsFormatted = order.items.map(item =>
+        `${item.name} x${item.qty} = ₹${item.qty * item.price}`).join('\n');
 
-        const currentStatus = order.status || "Confirmed";
-        const statusDropdown = `
-          <select onchange="updateStatus('${doc.id}', this.value)">
-            ${statusOptions.map(opt => `
-              <option value="${opt}" ${opt === currentStatus ? 'selected' : ''}>${opt}</option>
-            `).join('')}
-          </select>`;
+      const statusDropdown = `
+        <select onchange="updateStatus('${doc.id}', this.value)">
+          ${statusOptions.map(opt => `
+            <option value="${opt}" ${opt === status ? 'selected' : ''}>${opt}</option>
+          `).join('')}
+        </select>`;
 
-        row.innerHTML = `
-          <td>${doc.id}</td>
-          <td>
-            <strong>${order.custName}</strong><br>
-            📱 ${order.mobile}<br>
-            🪑 Table: ${order.tableNo}
-          </td>
-          <td><pre>${itemsFormatted}</pre></td>
-          <td>${statusDropdown}</td>
-        `;
-        orderTableBody.appendChild(row);
-      });
-    }
+      row.innerHTML = `
+        <td>${doc.id}</td>
+        <td>
+          <strong>${order.custName}</strong><br>
+          📱 ${order.mobile}<br>
+          🪑 Table: ${order.tableNo}
+        </td>
+        <td><pre>${itemsFormatted}</pre></td>
+        <td>${statusDropdown}</td>
+      `;
+      orderTableBody.appendChild(row);
+    });
+  }
 
-    // 🔁 Realtime Firestore Listener
+  // 🔁 Live Firestore Listener with Filters
+  db.collection("orders")
+    .orderBy("timestamp", "desc")
+    .onSnapshot(snapshot => {
+      const selectedStatus = statusFilter.value;
+      const selectedDate = dateFilter.value;
+      renderOrders(snapshot, selectedStatus, selectedDate);
+    });
+
+  // 🔁 Update order status
+  function updateStatus(orderId, newStatus) {
+    db.collection("orders").doc(orderId).update({
+      status: newStatus
+    }).then(() => {
+      console.log(`✅ Updated: ${orderId} -> ${newStatus}`);
+    }).catch(err => {
+      console.error("❌ Status update failed", err);
+      alert("❌ Could not update status");
+    });
+  }
+
+  // 🔁 Trigger re-render (not fetch) on filter change
+  function triggerRenderWithFilters() {
     db.collection("orders")
       .orderBy("timestamp", "desc")
-      .onSnapshot(snapshot => {
-        renderOrders(snapshot);
+      .get()
+      .then(snapshot => {
+        const selectedStatus = statusFilter.value;
+        const selectedDate = dateFilter.value;
+        renderOrders(snapshot, selectedStatus, selectedDate);
       });
+  }
 
-    // 🔁 Update order status
-    function updateStatus(orderId, newStatus) {
-      db.collection("orders").doc(orderId).update({
-        status: newStatus
-      }).then(() => {
-        console.log(`✅ Updated: ${orderId} -> ${newStatus}`);
-      }).catch(err => {
-        console.error("❌ Status update failed", err);
-        alert("❌ Could not update status");
-      });
-    }
+  statusFilter.addEventListener("change", triggerRenderWithFilters);
+  dateFilter.addEventListener("change", triggerRenderWithFilters);
+</script>
 
-    // 🔁 Refetch on filter change
-    statusFilter.addEventListener("change", () => {
-      db.collection("orders")
-        .orderBy("timestamp", "desc")
-        .get()
-        .then(renderOrders);
-    });
-
-    dateFilter.addEventListener("change", () => {
-      db.collection("orders")
-        .orderBy("timestamp", "desc")
-        .get()
-        .then(renderOrders);
-    });
-  </script>
 
 </body>
 </html>
