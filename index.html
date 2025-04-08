@@ -10,7 +10,7 @@
       font-family: 'Segoe UI', sans-serif;
       background: #f6f6f6;
       color: #333;
-      padding-bottom: 150px; /* Leave space for sticky cart */
+      padding-bottom: 150px;
     }
 
     header {
@@ -173,19 +173,23 @@
   </div>
 
   <script>
-    const cart = {};
+    const cart = JSON.parse(localStorage.getItem('cart')) || {};
     const cartItemsEl = document.getElementById('cartItems');
     const totalEl = document.getElementById('orderTotal');
+
+    window.onload = renderCart;
 
     function addToCart(item, price) {
       if (!cart[item]) cart[item] = { quantity: 0, price };
       cart[item].quantity++;
+      persistCart();
       showToast(`Added ${item} to cart`);
       renderCart();
     }
 
     function increaseQty(item) {
       cart[item].quantity++;
+      persistCart();
       showToast(`+1 ${item}`);
       renderCart();
     }
@@ -198,6 +202,7 @@
       } else {
         showToast(`-1 ${item}`);
       }
+      persistCart();
       renderCart();
     }
 
@@ -240,16 +245,21 @@
         custName,
         mobile,
         items: cart,
-        total: totalEl.innerText
+        total: totalEl.innerText,
+        timestamp: new Date().toISOString()
       };
 
-      console.log("Order Placed:", order);
+      const previousOrders = JSON.parse(localStorage.getItem('orders')) || [];
+      previousOrders.push(order);
+      localStorage.setItem('orders', JSON.stringify(previousOrders));
+
       showToast("✅ Order placed!");
       resetCart();
     }
 
     function resetCart() {
       for (const key in cart) delete cart[key];
+      persistCart();
       renderCart();
       document.getElementById('tableNo').value = '';
       document.getElementById('custName').value = '';
@@ -258,6 +268,10 @@
 
     function toggleCart() {
       document.getElementById('cartSidebar').classList.toggle('collapsed');
+    }
+
+    function persistCart() {
+      localStorage.setItem('cart', JSON.stringify(cart));
     }
 
     function showToast(message) {
