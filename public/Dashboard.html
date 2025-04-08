@@ -10,26 +10,52 @@
     th, td { border: 1px solid #ccc; padding: 10px; vertical-align: top; }
     th { background-color: #f4f4f4; }
     select, input[type="date"] {
-      padding: 6px;
-      margin-left: 10px;
-      border-radius: 4px;
-      border: 1px solid #ccc;
+      padding: 6px; margin-left: 10px;
+      border-radius: 4px; border: 1px solid #ccc;
     }
     td pre { margin: 0; font-size: 0.9rem; line-height: 1.4; }
     .filter-bar {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+      display: flex; align-items: center;
+      gap: 10px; margin-bottom: 10px;
+    }
+    .action-buttons button {
+      margin: 4px 4px 0 0;
+      padding: 4px 10px; font-size: 0.85rem;
+      border-radius: 4px; border: none; cursor: pointer;
+    }
+    .edit-btn { background: #007bff; color: #fff; }
+    .cancel-btn { background: #dc3545; color: #fff; }
+
+    /* Modal styles */
+    .modal {
+      display: none; position: fixed; z-index: 9999;
+      left: 0; top: 0; width: 100%; height: 100%;
+      background-color: rgba(0,0,0,0.6);
+      justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: white; padding: 20px; width: 400px;
+      border-radius: 6px;
+    }
+    .modal h3 { margin-top: 0; }
+    .modal .item-edit {
+      display: flex; justify-content: space-between;
       margin-bottom: 10px;
+    }
+    .modal .item-edit input {
+      width: 60px; text-align: center;
+    }
+    .modal-footer {
+      text-align: right; margin-top: 15px;
+    }
+    .modal-footer button {
+      margin-left: 10px;
     }
   </style>
 
-  <!-- ✅ Firebase SDKs -->
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-
   <script>
-    // ✅ Initialize Firebase
     const firebaseConfig = {
       apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
       authDomain: "testmenu-4ed51.firebaseapp.com",
@@ -45,53 +71,64 @@
 
 <body>
 
-  <h1>🔥 Live Kitchen Dashboard</h1>
+<h1>🔥 Live Kitchen Dashboard</h1>
 
-  <div class="filter-bar">
-    <label for="statusFilter">Filter by status:</label>
-    <select id="statusFilter">
-      <option value="All">All</option>
-      <option value="Confirmed">Confirmed</option>
-      <option value="Preparing">Preparing</option>
-      <option value="Ready to Serve">Ready to Serve</option>
-      <option value="Serve to Table">Serve to Table</option>
-      <option value="Clear Table">Clear Table</option>
-    </select>
+<div class="filter-bar">
+  <label for="statusFilter">Filter by status:</label>
+  <select id="statusFilter">
+    <option value="All">All</option>
+    <option value="Confirmed">Confirmed</option>
+    <option value="Preparing">Preparing</option>
+    <option value="Ready to Serve">Ready to Serve</option>
+    <option value="Serve to Table">Serve to Table</option>
+    <option value="Clear Table">Clear Table</option>
+  </select>
 
-    <label for="dateFilter">Today's Orders:</label>
-    <input type="date" id="dateFilter" />
+  <label for="dateFilter">Today's Orders:</label>
+  <input type="date" id="dateFilter" />
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>Customer</th>
+      <th>Items</th>
+      <th>Status</th>
+    </tr>
+  </thead>
+  <tbody id="order-table-body"></tbody>
+</table>
+
+<!-- 🧠 Modal for Edit -->
+<div id="editModal" class="modal">
+  <div class="modal-content">
+    <h3>Edit Order</h3>
+    <div id="modalItems"></div>
+    <div class="modal-footer">
+      <button onclick="closeModal()">❌ Cancel</button>
+      <button onclick="saveEdit()">💾 Save</button>
+    </div>
   </div>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Order ID</th>
-        <th>Customer</th>
-        <th>Items</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="order-table-body"></tbody>
-  </table>
+</div>
 
 <script>
   const orderTableBody = document.getElementById('order-table-body');
   const statusFilter = document.getElementById('statusFilter');
   const dateFilter = document.getElementById('dateFilter');
+  const modal = document.getElementById('editModal');
+  const modalItems = document.getElementById('modalItems');
+
+  let editingOrderId = null;
+  let editingOrderItems = [];
 
   const statusOptions = [
-    "Confirmed",
-    "Preparing",
-    "Ready to Serve",
-    "Serve to Table",
-    "Clear Table"
+    "Confirmed", "Preparing", "Ready to Serve", "Serve to Table", "Clear Table"
   ];
 
-  // Set default date to today
   const todayStr = new Date().toISOString().split("T")[0];
   dateFilter.value = todayStr;
 
-  // 🧠 Helper to safely extract ISO date
   function getSafeISODate(ts) {
     if (!ts) return null;
     try {
@@ -102,21 +139,15 @@
     }
   }
 
-  // Render filtered orders
   function renderOrders(snapshot, selectedStatus, selectedDate) {
     orderTableBody.innerHTML = '';
-
     snapshot.forEach(doc => {
       const order = doc.data();
       const orderDate = getSafeISODate(order.timestamp);
       const status = order.status || "Confirmed";
-
-      // Skip if no valid timestamp or mismatched filter
       if (!orderDate || 
           (selectedStatus !== "All" && status !== selectedStatus) ||
-          (selectedDate && orderDate !== selectedDate)) {
-        return;
-      }
+          (selectedDate && orderDate !== selectedDate)) return;
 
       const row = document.createElement('tr');
       const itemsFormatted = order.items.map(item =>
@@ -129,55 +160,89 @@
           `).join('')}
         </select>`;
 
+      let actionBtns = '';
+      if (status === "Confirmed") {
+        actionBtns = `
+          <div class="action-buttons">
+            <button class="edit-btn" onclick="openEdit('${doc.id}')">✏️ Edit</button>
+            <button class="cancel-btn" onclick="cancelOrder('${doc.id}')">❌ Cancel</button>
+          </div>`;
+      }
+
       row.innerHTML = `
         <td>${doc.id}</td>
-        <td>
-          <strong>${order.custName}</strong><br>
-          📱 ${order.mobile}<br>
-          🪑 Table: ${order.tableNo}
-        </td>
+        <td><strong>${order.custName}</strong><br>📱 ${order.mobile}<br>🪑 Table: ${order.tableNo}</td>
         <td><pre>${itemsFormatted}</pre></td>
-        <td>${statusDropdown}</td>
+        <td>${statusDropdown}${actionBtns}</td>
       `;
       orderTableBody.appendChild(row);
     });
   }
 
-  // 🔁 Live Firestore Listener with Filters
-  db.collection("orders")
-    .orderBy("timestamp", "desc")
-    .onSnapshot(snapshot => {
+  function updateStatus(orderId, newStatus) {
+    db.collection("orders").doc(orderId).update({ status: newStatus })
+      .then(() => console.log(`✅ Updated: ${orderId} -> ${newStatus}`))
+      .catch(err => alert("❌ Could not update status"));
+  }
+
+  function cancelOrder(orderId) {
+    if (confirm("Are you sure you want to cancel this order?")) {
+      db.collection("orders").doc(orderId).delete()
+        .then(() => console.log(`🗑️ Deleted order ${orderId}`))
+        .catch(err => alert("❌ Cancel failed"));
+    }
+  }
+
+  function openEdit(orderId) {
+    editingOrderId = orderId;
+    db.collection("orders").doc(orderId).get().then(doc => {
+      const data = doc.data();
+      editingOrderItems = data.items;
+      modalItems.innerHTML = editingOrderItems.map((item, i) => `
+        <div class="item-edit">
+          <span>${item.name}</span>
+          <input type="number" min="1" id="qty-${i}" value="${item.qty}" />
+        </div>`).join('');
+      modal.style.display = 'flex';
+    });
+  }
+
+  function closeModal() {
+    modal.style.display = 'none';
+    editingOrderId = null;
+  }
+
+  function saveEdit() {
+    const updatedItems = editingOrderItems.map((item, i) => {
+      const qty = parseInt(document.getElementById(`qty-${i}`).value) || 1;
+      return { ...item, qty };
+    });
+
+    db.collection("orders").doc(editingOrderId).update({ items: updatedItems })
+      .then(() => {
+        console.log("✅ Order updated");
+        closeModal();
+      })
+      .catch(() => alert("❌ Failed to update"));
+  }
+
+  function triggerRenderWithFilters() {
+    db.collection("orders").orderBy("timestamp", "desc").get().then(snapshot => {
       const selectedStatus = statusFilter.value;
       const selectedDate = dateFilter.value;
       renderOrders(snapshot, selectedStatus, selectedDate);
     });
-
-  // 🔁 Update order status
-  function updateStatus(orderId, newStatus) {
-    db.collection("orders").doc(orderId).update({
-      status: newStatus
-    }).then(() => {
-      console.log(`✅ Updated: ${orderId} -> ${newStatus}`);
-    }).catch(err => {
-      console.error("❌ Status update failed", err);
-      alert("❌ Could not update status");
-    });
-  }
-
-  // 🔁 Trigger re-render on filter change
-  function triggerRenderWithFilters() {
-    db.collection("orders")
-      .orderBy("timestamp", "desc")
-      .get()
-      .then(snapshot => {
-        const selectedStatus = statusFilter.value;
-        const selectedDate = dateFilter.value;
-        renderOrders(snapshot, selectedStatus, selectedDate);
-      });
   }
 
   statusFilter.addEventListener("change", triggerRenderWithFilters);
   dateFilter.addEventListener("change", triggerRenderWithFilters);
+
+  db.collection("orders").orderBy("timestamp", "desc").onSnapshot(snapshot => {
+    const selectedStatus = statusFilter.value;
+    const selectedDate = dateFilter.value;
+    renderOrders(snapshot, selectedStatus, selectedDate);
+  });
 </script>
+
 </body>
 </html>
