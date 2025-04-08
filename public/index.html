@@ -17,7 +17,6 @@
       background: #333;
       color: #fff;
       padding: 15px 20px;
-      text-align: center;
       font-size: 1.5rem;
       display: flex;
       justify-content: space-between;
@@ -134,7 +133,7 @@
 
 <header>
   <span>🍽️ Welcomes Digital Menu</span>
-  <button onclick="trackMyOrder()" style="padding: 6px 12px; background: #17a2b8; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
+  <button onclick="trackMyOrder()" style="padding: 6px 12px; background: #17a2b8; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
     📦 Track My Order
   </button>
 </header>
@@ -162,7 +161,6 @@
   </div>
 </div>
 
-<!-- Sticky Cart Section -->
 <div id="cartSidebar">
   <div id="cartHeader">🛒 View Cart</div>
   <div id="cartItems"></div>
@@ -181,9 +179,8 @@
   </div>
   <button id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
 </div>
-<!-- ✅ Your HTML remains same up to here -->
 
-<!-- Firebase SDKs (Firestore) -->
+<!-- Firebase SDKs -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
@@ -196,7 +193,6 @@
     messagingSenderId: "98263305480",
     appId: "1:98263305480:web:024158941cb5f53225f0bd"
   };
-
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 </script>
@@ -224,11 +220,13 @@
   }
 
   function decreaseQty(item) {
-    cart[item].quantity--;
-    if (cart[item].quantity <= 0) {
+    if (!cart[item]) return;
+
+    if (cart[item].quantity <= 1) {
       delete cart[item];
       showToast(`❌ Removed ${item}`);
     } else {
+      cart[item].quantity--;
       showToast(`➖ ${item}`);
     }
     persistCart();
@@ -251,42 +249,42 @@
       `;
       cartItemsEl.appendChild(row);
     }
-    totalEl.innerText = `Total: ₹${total}`;
+    totalEl.innerText = `Total: ₹${total.toFixed(2)}`;
   }
 
   async function placeOrder() {
-  const tableNo = document.getElementById('tableNo').value;
-  const custName = document.getElementById('custName').value.trim();
-  const mobile = document.getElementById('mobile').value.trim();
+    const tableNo = document.getElementById('tableNo').value;
+    const custName = document.getElementById('custName').value.trim();
+    const mobile = document.getElementById('mobile').value.trim();
 
-  if (!tableNo || !custName || !mobile) return showToast("⚠️ Please fill all fields");
-  if (Object.keys(cart).length === 0) return showToast("🛒 Cart is empty");
+    if (!tableNo || !custName || !mobile) return showToast("⚠️ Please fill all fields");
+    if (Object.keys(cart).length === 0) return showToast("🛒 Cart is empty");
 
-  const items = Object.entries(cart).map(([name, data]) => ({
-    name,
-    qty: data.quantity,
-    price: data.price
-  }));
+    const items = Object.entries(cart).map(([name, data]) => ({
+      name,
+      qty: data.quantity,
+      price: data.price
+    }));
 
-  const order = {
-    tableNo,
-    custName,
-    mobile,
-    items,
-    total: items.reduce((sum, i) => sum + (i.qty * i.price), 0),
-    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    status: "Confirmed"
-  };
+    const order = {
+      tableNo,
+      custName,
+      mobile,
+      items,
+      total: items.reduce((sum, i) => sum + (i.qty * i.price), 0),
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+      status: "Confirmed"
+    };
 
-  try {
-    await db.collection("orders").add(order);
-    showToast("✅ Order placed!");
-    resetCart();
-  } catch (err) {
-    console.error("🔥 Firestore Error:", err);
-    showToast("❌ Failed to place order");
+    try {
+      await db.collection("orders").add(order);
+      showToast("✅ Order placed!");
+      resetCart();
+    } catch (err) {
+      console.error("🔥 Firestore Error:", err);
+      showToast("❌ Failed to place order");
+    }
   }
-}
 
   function resetCart() {
     for (const key in cart) delete cart[key];
@@ -327,17 +325,17 @@
         let msg = "📋 Latest Orders:\n";
         snapshot.forEach(doc => {
           const order = doc.data();
+          const ts = order.timestamp?.toDate?.() || new Date();
           msg += `\n🪑 Table: ${order.tableNo}\nStatus: ${order.status || 'Pending'}\n`;
           order.items.forEach(item => {
             msg += `• ${item.name} x${item.qty} = ₹${item.qty * item.price}\n`;
           });
-          msg += `Total: ${order.total}\n🕒 ${new Date(order.timestamp).toLocaleString()}\n`;
+          msg += `Total: ₹${order.total}\n🕒 ${ts.toLocaleString()}\n`;
         });
 
         alert(msg);
       });
   }
 </script>
-
 </body>
 </html>
