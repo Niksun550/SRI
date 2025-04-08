@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Kitchen Dashboard</title>
+  <script src="/socket.io/socket.io.js"></script>
+  <script defer src="/js/dashboard.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    h1 { color: #444; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 10px; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>🔥 Live Kitchen Dashboard</h1>
+  <table>
+    <thead>
+      <tr>
+        <th>Order ID</th>
+        <th>Customer</th>
+        <th>Items</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="order-table-body">
+    </tbody>
+  </table>
+</body>
+</html>
