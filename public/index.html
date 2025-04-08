@@ -181,6 +181,23 @@
   </div>
   <button id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
 </div>
+<!-- Firebase SDKs (Firestore) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
+    authDomain: "testmenu-4ed51.firebaseapp.com",
+    projectId: "testmenu-4ed51",
+    storageBucket: "testmenu-4ed51.appspot.com",
+    messagingSenderId: "98263305480",
+    appId: "1:98263305480:web:024158941cb5f53225f0bd"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+</script>
 
 <script>
   const cart = JSON.parse(localStorage.getItem('cart')) || {};
