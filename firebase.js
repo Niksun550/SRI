@@ -1,5 +1,6 @@
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+console.log(firebase.apps.length); // Should log: 1
 const firebaseConfig = {
   apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
   authDomain: "testmenu-4ed51.firebaseapp.com",
