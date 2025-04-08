@@ -255,38 +255,38 @@
   }
 
   async function placeOrder() {
-    const tableNo = document.getElementById('tableNo').value;
-    const custName = document.getElementById('custName').value.trim();
-    const mobile = document.getElementById('mobile').value.trim();
+  const tableNo = document.getElementById('tableNo').value;
+  const custName = document.getElementById('custName').value.trim();
+  const mobile = document.getElementById('mobile').value.trim();
 
-    if (!tableNo || !custName || !mobile) return showToast("⚠️ Please fill all fields");
-    if (Object.keys(cart).length === 0) return showToast("🛒 Cart is empty");
+  if (!tableNo || !custName || !mobile) return showToast("⚠️ Please fill all fields");
+  if (Object.keys(cart).length === 0) return showToast("🛒 Cart is empty");
 
-    const items = Object.entries(cart).map(([name, data]) => ({
-      name,
-      qty: data.quantity,
-      price: data.price
-    }));
+  const items = Object.entries(cart).map(([name, data]) => ({
+    name,
+    qty: data.quantity,
+    price: data.price
+  }));
 
-    const order = {
-      tableNo,
-      custName,
-      mobile,
-      items,
-      total: totalEl.innerText,
-      timestamp: new Date().toISOString(),
-      status: "new"
-    };
+  const order = {
+    tableNo,
+    custName,
+    mobile,
+    items,
+    total: items.reduce((sum, i) => sum + (i.qty * i.price), 0),
+    timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    status: "Confirmed"
+  };
 
-    try {
-      await db.collection("orders").add(order);
-      showToast("✅ Order placed!");
-      resetCart();
-    } catch (err) {
-      console.error("🔥 Firestore Error:", err);
-      showToast("❌ Failed to place order");
-    }
+  try {
+    await db.collection("orders").add(order);
+    showToast("✅ Order placed!");
+    resetCart();
+  } catch (err) {
+    console.error("🔥 Firestore Error:", err);
+    showToast("❌ Failed to place order");
   }
+}
 
   function resetCart() {
     for (const key in cart) delete cart[key];
