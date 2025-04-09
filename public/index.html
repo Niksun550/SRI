@@ -17,6 +17,7 @@
       background: #333;
       color: #fff;
       padding: 15px 20px;
+      text-align: center;
       font-size: 1.5rem;
       display: flex;
       justify-content: space-between;
@@ -133,7 +134,7 @@
 
 <header>
   <span>🍽️ Welcomes Digital Menu</span>
-  <button onclick="trackMyOrder()" style="padding: 6px 12px; background: #17a2b8; color: #fff; border: none; border-radius: 4px; cursor: pointer;">
+  <button onclick="trackMyOrder()" style="padding: 6px 12px; background: #17a2b8; color: #fff; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
     📦 Track My Order
   </button>
 </header>
@@ -161,8 +162,9 @@
   </div>
 </div>
 
+<!-- Sticky Cart Section -->
 <div id="cartSidebar">
-  <div id="cartHeader">🛒 View Order</div>
+  <div id="cartHeader">🛒 View Cart</div>
   <div id="cartItems"></div>
   <div id="orderTotal">Total: ₹0</div>
   <div class="inputs">
@@ -180,7 +182,7 @@
   <button id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
 </div>
 
-<!-- Firebase SDKs -->
+<!-- Firebase SDKs (Firestore) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 
@@ -193,6 +195,7 @@
     messagingSenderId: "98263305480",
     appId: "1:98263305480:web:024158941cb5f53225f0bd"
   };
+
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
 </script>
@@ -220,13 +223,11 @@
   }
 
   function decreaseQty(item) {
-    if (!cart[item]) return;
-
-    if (cart[item].quantity <= 1) {
+    cart[item].quantity--;
+    if (cart[item].quantity <= 0) {
       delete cart[item];
       showToast(`❌ Removed ${item}`);
     } else {
-      cart[item].quantity--;
       showToast(`➖ ${item}`);
     }
     persistCart();
@@ -249,7 +250,14 @@
       `;
       cartItemsEl.appendChild(row);
     }
-    totalEl.innerText = `Total: ₹${total.toFixed(2)}`;
+    totalEl.innerText = `Total: ₹${total}`;
+  }
+
+  // Function to generate a unique Order Number
+  function generateOrderNumber() {
+    const timestamp = Date.now(); // Get current timestamp (milliseconds)
+    const random = Math.floor(Math.random() * 1000); // Generate a random number between 0-999
+    return `ORD-${timestamp}-${random}`;
   }
 
   async function placeOrder() {
@@ -266,7 +274,11 @@
       price: data.price
     }));
 
+    // Generate a custom order number
+    const orderNumber = generateOrderNumber();
+
     const order = {
+      orderNumber, // Custom order number
       tableNo,
       custName,
       mobile,
@@ -278,7 +290,7 @@
 
     try {
       await db.collection("orders").add(order);
-      showToast("✅ Order placed!");
+      showToast(`✅ Order placed! Order No: ${orderNumber}`);
       resetCart();
     } catch (err) {
       console.error("🔥 Firestore Error:", err);
@@ -325,17 +337,17 @@
         let msg = "📋 Latest Orders:\n";
         snapshot.forEach(doc => {
           const order = doc.data();
-          const ts = order.timestamp?.toDate?.() || new Date();
           msg += `\n🪑 Table: ${order.tableNo}\nStatus: ${order.status || 'Pending'}\n`;
           order.items.forEach(item => {
             msg += `• ${item.name} x${item.qty} = ₹${item.qty * item.price}\n`;
           });
-          msg += `Total: ₹${order.total}\n🕒 ${ts.toLocaleString()}\n`;
+          msg += `Total: ${order.total}\n🕒 ${new Date(order.timestamp).toLocaleString()}\n`;
         });
 
         alert(msg);
       });
   }
 </script>
+
 </body>
 </html>
