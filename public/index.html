@@ -51,6 +51,15 @@
       border-radius: 4px;
       cursor: pointer;
     }
+    #reviewBtn {
+      background-color: #ff7f00;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-top: 15px;
+    }
 
     #cartSidebar {
       position: fixed;
@@ -128,6 +137,31 @@
       opacity: 1;
       bottom: 120px;
     }
+
+    /* Footer Styles */
+    footer {
+      background-color: #333;
+      color: white;
+      text-align: center;
+      padding: 15px 0;
+      font-size: 0.9rem;
+    }
+
+    footer .social-media {
+      margin-top: 10px;
+    }
+
+    footer .social-media a {
+      margin: 0 10px;
+      text-decoration: none;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    footer .social-media a:hover {
+      color: #007bff;
+    }
+
   </style>
 </head>
 <body>
@@ -160,11 +194,12 @@
     <p>₹90</p>
     <button onclick="addToCart('Masala Dosa', 90)">Add to Cart</button>
   </div>
+  <button id="reviewBtn" onclick="goToReview()">📝 Review us on Google </button>
 </div>
 
 <!-- Sticky Cart Section -->
 <div id="cartSidebar">
-  <div id="cartHeader">🛒 View Cart</div>
+  <div id="cartHeader">🛒 View Cart</div>a
   <div id="cartItems"></div>
   <div id="orderTotal">Total: ₹0</div>
   <div class="inputs">
@@ -181,6 +216,17 @@
   </div>
   <button id="placeOrderBtn" onclick="placeOrder()">Place Order</button>
 </div>
+
+<!-- Footer Section -->
+<footer>
+  
+ <div class="social-media">
+    <a href="https://www.facebook.com/" target="_blank">📱 Facebook</a>
+    <a href="https://www.twitter.com/" target="_blank">🐦 Twitter</a>
+    <a href="https://www.instagram.com/" target="_blank">📷 Instagram</a>
+  </div>
+  <p>Powered By SRIDA TECHNOLOGIES</p>
+  </footer>
 
 <!-- Firebase SDKs (Firestore) -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -253,7 +299,6 @@
     totalEl.innerText = `Total: ₹${total}`;
   }
 
-  // Function to generate a unique Order Number
   function generateOrderNumber() {
     const timestamp = Date.now(); // Get current timestamp (milliseconds)
     const random = Math.floor(Math.random() * 1000); // Generate a random number between 0-999
@@ -274,11 +319,10 @@
       price: data.price
     }));
 
-    // Generate a custom order number
     const orderNumber = generateOrderNumber();
 
     const order = {
-      orderNumber, // Custom order number
+      orderNumber, 
       tableNo,
       custName,
       mobile,
@@ -347,7 +391,10 @@
         alert(msg);
       });
   }
-</script>
 
+  function goToReview() {
+    window.open("https://www.google.com/search?q=SRIDA+TECHNOLOGIES+restaurant+reviews", "_blank");
+  }
+</script>
 </body>
 </html>
