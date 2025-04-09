@@ -141,46 +141,45 @@
   }
 
   function renderOrders(snapshot, selectedStatus, selectedDate) {
-    orderTableBody.innerHTML = '';
-    snapshot.forEach(doc => {
-      const order = doc.data();
-      const orderDate = getSafeISODate(order.timestamp);
-      const status = order.status || "Confirmed";
-      if (!orderDate || 
-          (selectedStatus !== "All" && status !== selectedStatus) ||
-          (selectedDate && orderDate !== selectedDate)) return;
+  orderTableBody.innerHTML = '';
 
-      const row = document.createElement('tr');
-      const itemsFormatted = order.items.map(item =>
-        `${item.name} x${item.qty} = ₹${item.qty * item.price}`).join('\n');
+  snapshot.forEach(doc => {
+    const order = doc.data();
+    const orderDate = getSafeISODate(order.timestamp);
+    const status = order.status || "Confirmed";
 
-      const statusDropdown = `
-        <select onchange="updateStatus('${doc.id}', this.value)">
-          ${statusOptions.map(opt => `
-            <option value="${opt}" ${opt === status ? 'selected' : ''}>${opt}</option>
-          `).join('')}
-        </select>`;
+    // Skip if no valid timestamp or mismatched filter
+    if (!orderDate || 
+        (selectedStatus !== "All" && status !== selectedStatus) ||
+        (selectedDate && orderDate !== selectedDate)) {
+      return;
+    }
 
-      let actionBtns = '';
-      if (status === "Confirmed") {
-        actionBtns = `
-          <div class="action-buttons">
-            <button class="edit-btn" onclick="openEdit('${doc.id}')">✏️ Edit</button>
-            <button class="cancel-btn" onclick="cancelOrder('${doc.id}')">❌ Cancel</button>
-          </div>`;
-      }
+    const row = document.createElement('tr');
+    const itemsFormatted = order.items.map(item =>
+      `${item.name} x${item.qty} = ₹${item.qty * item.price}`).join('\n');
 
-      row.innerHTML = `
-        <td>${doc.id}</td>
-        <td><strong>${order.custName}</strong><br>📱 ${order.mobile}<br>🪑 Table: ${order.tableNo}</td>
-        <td><pre>${itemsFormatted}</pre></td>
-        <td>${statusDropdown}${actionBtns}</td>
-      `;
-      orderTableBody.appendChild(row);
-    });
-  }
+    const statusDropdown = `
+      <select onchange="updateStatus('${doc.id}', this.value)">
+        ${statusOptions.map(opt => `
+          <option value="${opt}" ${opt === status ? 'selected' : ''}>${opt}</option>
+        `).join('')}
+      </select>`;
 
-  function updateStatus(orderId, newStatus) {
+    row.innerHTML = `
+      <td>${order.orderNumber}</td> <!-- Show custom order number -->
+      <td>
+        <strong>${order.custName}</strong><br>
+        📱 ${order.mobile}<br>
+        🪑 Table: ${order.tableNo}
+      </td>
+      <td><pre>${itemsFormatted}</pre></td>
+      <td>${statusDropdown}</td>
+    `;
+    orderTableBody.appendChild(row);
+  });
+}
+function updateStatus(orderId, newStatus) {
     db.collection("orders").doc(orderId).update({ status: newStatus })
       .then(() => console.log(`✅ Updated: ${orderId} -> ${newStatus}`))
       .catch(err => alert("❌ Could not update status"));
