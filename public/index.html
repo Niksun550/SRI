@@ -164,6 +164,19 @@
       margin-top: 15px;
     }
 
+    /* Add more spacing to the 'View Cart' button and ensure it stays above footer */
+    #viewCartBtn {
+      position: fixed;
+      bottom: 75px; /* Adjust for better visibility above footer */
+      left: 20px;
+      z-index: 1000;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+    }
+
   </style>
 </head>
 <body>
@@ -198,9 +211,10 @@
   </div>
 </div>
 
-<!-- Sticky Cart Section -->
-<button onclick="toggleCart()" style="position: fixed; bottom: 60px; left: 10px; z-index: 1000; padding: 10px; background-color: #007bff; color: white; border: none; border-radius: 4px;">View Cart</button>
+<!-- View Cart Button -->
+<button id="viewCartBtn" onclick="toggleCart()">View Cart</button>
 
+<!-- Sticky Cart Section -->
 <div id="cartSidebar">
   <div id="cartHeader">🛒 View Cart</div>
   <div id="cartItems"></div>
