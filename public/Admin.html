@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f4f4;
+    }
+
+    header {
+      background-color: #333;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.4rem;
+    }
+
+    .content {
+      padding: 20px;
+      padding-bottom: 70px;
+    }
+
+    /* --- Modern Tab Bar --- */
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      background-color: #fff;
+      border-top: 1px solid #ccc;
+      box-shadow: 0 -1px 5px rgba(0,0,0,0.1);
+      z-index: 999;
+    }
+
+    .tab-button {
+      flex: 1;
+      padding: 10px 0;
+      text-align: center;
+      font-size: 0.85rem;
+      color: #666;
+      background: none;
+      border: none;
+      cursor: pointer;
+    }
+
+    .tab-button.active {
+      color: #007bff;
+      font-weight: bold;
+    }
+
+    .tab-button i {
+      display: block;
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 12px;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: #eee;
+    }
+
+    select, button {
+      padding: 6px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+
+    .cancel-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    @media (min-width: 768px) {
+      .tab-bar {
+        position: static;
+        display: none; /* Hide on large screens */
+      }
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+
+<header>🔥 Admin Dashboard</header>
+
+<div class="content">
+  <!-- 📦 Orders Tab -->
+  <div id="ordersTab" class="tab-content active">
+    <h2>📋 Live Orders</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Order No</th>
+          <th>Customer</th>
+          <th>Items</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="orderTableBody"></tbody>
+    </table>
+  </div>
+
+  <!-- 📊 Summary Tab -->
+  <div id="summaryTab" class="tab-content">
+    <h2>📊 Summary</h2>
+    <p>Coming soon...</p>
+  </div>
+
+  <!-- 📝 Feedback Tab -->
+  <div id="feedbackTab" class="tab-content">
+    <h2>📝 Feedback</h2>
+    <p>Feedback module coming soon...</p>
+  </div>
+</div>
+
+<!-- 🔻 Mobile Tab Navigation -->
+<div class="tab-bar">
+  <button class="tab-button active" onclick="switchTab('ordersTab', this)">
+    <i class="fas fa-receipt"></i>Orders
+  </button>
+  <button class="tab-button" onclick="switchTab('summaryTab', this)">
+    <i class="fas fa-chart-pie"></i>Summary
+  </button>
+  <button class="tab-button" onclick="switchTab('feedbackTab', this)">
+    <i class="fas fa-comment-alt"></i>Feedback
+  </button>
+</div>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAkwiKjPYsv4LlRQLTxH6kj15xlCnvoXKA",
+    authDomain: "testmenu-4ed51.firebaseapp.com",
+    projectId: "testmenu-4ed51",
+    storageBucket: "testmenu-4ed51.appspot.com",
+    messagingSenderId: "98263305480",
+    appId: "1:98263305480:web:024158941cb5f53225f0bd"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  const statusOptions = [
+    "Confirmed", "Preparing", "Ready to Serve", "Serve to Table", "Clear Table", "Cancelled"
+  ];
+
+  function renderOrders(snapshot) {
+    const tbody = document.getElementById("orderTableBody");
+    tbody.innerHTML = '';
+
+    snapshot.forEach(doc => {
+      const order = doc.data();
+      const row = document.createElement('tr');
+
+      const items = order.items.map(i => `${i.name} x${i.qty}`).join(', ');
+      const statusDropdown = `
+        <select onchange="updateStatus('${doc.id}', this.value)">
+          ${statusOptions.map(opt => `<option ${order.status === opt ? 'selected' : ''}>${opt}</option>`).join('')}
+        </select>
+      `;
+
+      const cancelBtn = `<button class="cancel-btn" onclick="cancelOrder('${doc.id}')">Cancel</button>`;
+
+      row.innerHTML = `
+        <td>${order.orderNumber || doc.id}</td>
+        <td><strong>${order.custName}</strong><br>📱 ${order.mobile}<br>🪑 Table: ${order.tableNo}</td>
+        <td>${items}</td>
+        <td>${statusDropdown}</td>
+        <td>${cancelBtn}</td>
+      `;
+
+      tbody.appendChild(row);
+    });
+  }
+
+  function updateStatus(id, status) {
+    db.collection("orders").doc(id).update({ status })
+      .then(() => console.log(`✅ Updated ${id} -> ${status}`))
+      .catch(err => alert("❌ Failed to update status"));
+  }
+
+  function cancelOrder(id) {
+    if (confirm("Cancel this order?")) {
+      db.collection("orders").doc(id).update({ status: "Cancelled" })
+        .then(() => console.log(`❌ Order ${id} cancelled`))
+        .catch(err => alert("❌ Cancel failed"));
+    }
+  }
+
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+    btn.classList.add('active');
+    document.getElementById(tabId).classList.add('active');
+  }
+
+  db.collection("orders").orderBy("timestamp", "desc").onSnapshot(renderOrders);
+</script>
+
+</body>
+</html>
